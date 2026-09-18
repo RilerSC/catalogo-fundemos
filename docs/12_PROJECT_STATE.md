@@ -16,13 +16,13 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 
 ## 2. Estado general
 
-**Fase:** Esquema persistente inicial definido / listo para datos y catálogo  
-**Estado:** DATA SCHEMA COMPLETE  
+**Fase:** Base Neon conectada / esquema físico aplicado  
+**Estado:** DATABASE CONNECTED  
 **Fecha de referencia:** 2026-09-17
 
-El discovery, la arquitectura, el scaffold Next.js y el esquema físico inicial de PostgreSQL/Drizzle están cerrados.
+El discovery, la arquitectura, el scaffold Next.js, el esquema físico inicial y la conexión a Neon están cerrados. La migración versionada de DATA-001 está aplicada en PostgreSQL real.
 
-No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen la siguiente iteración. El catálogo, CMS, leads e integraciones aún no están construidos. No hay conexión a Neon ni programas ingeridos.
+No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen la siguiente iteración. El catálogo, CMS, leads e integraciones aún no están construidos. La base de negocio permanece vacía: no hay taxonomía ni programas ingeridos.
 
 ---
 
@@ -257,8 +257,9 @@ Google
 - contrato técnico concreto del proxy;
 - identificadores/configuración de GA4;
 - configuración de Search Console;
-- configuración de Vercel Blob;
-- conexión de Neon.
+- configuración de Vercel Blob.
+
+La conexión de Neon ya está configurada localmente mediante `.env.local` (fuera de Git). La variable en Vercel podrá definirse cuando se prepare el primer deployment.
 
 Estas son tareas de implementación/configuración y no bloqueos arquitectónicos.
 
@@ -317,12 +318,12 @@ Investigaciones adicionales deberán ser específicas y responder a una decisió
 
 ## 13. Estado del repositorio
 
-**COMPLETE — inspeccionado en BOOTSTRAP-001**
+**COMPLETE — inspeccionado en BOOTSTRAP-001; rama actualizada tras sincronización del usuario**
 
 Repositorio Git real:
 
 - remoto: `https://github.com/RilerSC/catalogo-fundemos.git`
-- rama de trabajo: `docs`
+- rama de trabajo: `main`
 - historial preservado
 - no existía aplicación Next.js, `package.json`, TypeScript, Tailwind ni Drizzle antes del bootstrap
 - no se encontró trabajo de aplicación que debiera preservarse por encima del material documental y fuente
@@ -345,7 +346,18 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - variable documentada: `DATABASE_URL` en `.env.example`
 - precio de apertura: `numeric(12,2)` obligatorio + `price_currency` texto mínimo
 - no hay seeds ni `taxonomy.ts`
-- no se inventó `DATABASE_URL`, no se conectó a Neon y no se ejecutó `db:migrate`
+
+**Neon / migración aplicada:** COMPLETE (DATA-002)
+
+- proyecto Neon: `catalogo-fundepos`
+- región: `aws-us-east-1`
+- base: `neondb` (rama `main`)
+- `DATABASE_URL` configurada solo en `.env.local` (ignorado por Git)
+- migración aplicada con `npm run db:migrate` / `drizzle-kit migrate` (no `drizzle push`)
+- Drizzle registró `0000_sweet_mathemanic` en `drizzle.__drizzle_migrations`
+- las nueve tablas de negocio existen en `public` y están vacías (0 registros)
+- no hay tabla de usuarios administrativos en `public`; Neon Auth de consola existe en el esquema `neon_auth` y no es usado por la aplicación
+- lint, typecheck y build: PASS
 
 **Producto:** el catálogo público, CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
 
@@ -355,9 +367,9 @@ No se deben confundir el esquema persistente con funcionalidades de negocio ya i
 
 ## 15. Próximo objetivo
 
-DATA-001 ya dejó el modelo persistente y sus relaciones.
+DATA-002 ya dejó Neon conectado y el esquema físico aplicado.
 
-El próximo objetivo es una iteración funcional focal: aplicar la migración contra Neon cuando exista `DATABASE_URL`, cargar la taxonomía inicial, o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
+El próximo objetivo es una iteración funcional focal: insertar únicamente la taxonomía inicial (`AcademicType` y `KnowledgeField`) o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -438,7 +450,7 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-Provisionar Neon, configurar `DATABASE_URL` en `.env.local` (sin versionarlo) y aplicar `drizzle/0000_sweet_mathemanic.sql` de forma controlada. Después, insertar únicamente la taxonomía inicial (`AcademicType` y `KnowledgeField`) sin ingerir los 32 programas.
+Insertar únicamente la taxonomía inicial (`AcademicType` y `KnowledgeField`) en la base Neon ya migrada, sin ingerir los 32 programas.
 
 No ejecutar ese paso en esta iteración.
 
@@ -456,7 +468,9 @@ GENERAL RESEARCH                  COMPLETE
 REPOSITORY INSPECTION             COMPLETE
 TECHNICAL SCAFFOLD                COMPLETE
 DRIZZLE / NEON PREP               COMPLETE
-DATABASE SCHEMA                   COMPLETE (SQL generado; no aplicado a Neon)
+DATABASE SCHEMA                   COMPLETE
+NEON PROVISIONING                 COMPLETE
+INITIAL MIGRATION APPLIED         COMPLETE
 PUBLIC CATALOG                    PENDING
 SEARCH / FILTERS                  PENDING
 PROGRAM DETAIL                    PENDING
@@ -470,4 +484,4 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** esquema físico inicial definido y validado en código; listo para conectar Neon o iniciar el catálogo público.
+**Estado operativo:** Neon conectado, migración inicial aplicada y tablas de negocio vacías; listo para taxonomía inicial o catálogo público de solo lectura.
