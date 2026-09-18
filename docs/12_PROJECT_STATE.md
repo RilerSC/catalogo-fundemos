@@ -20,7 +20,7 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 **Estado:** PUBLIC CATALOG PREVIEW  
 **Fecha de referencia:** 2026-09-18
 
-El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. Existe un catálogo público funcional en preview (`/`, `/programas`, `/programas/[slug]`) que lee Neon. Los registros siguen en `draft`; la regla productiva de publicación no se debilitó. CMS, leads e integraciones no están construidos.
+El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. Los precios con varios conceptos se muestran por separado. Búsqueda y filtros se aplican en memoria sobre el dataset ya cargado; la URL se sincroniza sin round-trip a Neon. Los registros siguen en `draft`; la regla productiva de publicación no se debilitó. CMS, leads e integraciones no están construidos.
 
 ---
 
@@ -343,7 +343,7 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - archivos: `drizzle.config.ts`, `src/db/schema.ts`, `src/db/index.ts` (cliente lazy)
 - migración: `drizzle/0000_sweet_mathemanic.sql`
 - variable documentada: `DATABASE_URL` en `.env.example`
-- precio de apertura: `numeric(12,2)` + `price_currency`; ambos opcionales desde DATA-006 (inicialmente NOT NULL en DATA-001)
+- precio de apertura: componentes en `offering_price_components` (PUBLIC-001A). `offerings.price_amount` / `price_currency` permanecen nullable como columnas legacy y ya no alimentan la UI.
 
 **Neon / migración aplicada:** COMPLETE (DATA-002)
 
@@ -412,8 +412,35 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - preview de `draft` si `VERCEL_ENV !== production` o `CATALOG_PREVIEW=true`; en producción Vercel solo valen publicados + fecha vigente
 - búsqueda textual accent-insensitive; filtros combinables por tipo (OR) y campo (OR); AND entre dimensiones y con la búsqueda
 - estado en query: `q`, `type`, `field`
-- precio: se muestra como “Inversión” solo si amount y currency existen; NULL no renderiza bloque
+- precio: se muestra cada componente (Matrícula, Programa, Materia o Inversión) cuando existe; cero componentes no renderiza bloque
 - sin CMS, leads, intereses, imágenes ni analytics
+- lint, typecheck y build: PASS
+
+**Precios desglosados y catálogo como home:** COMPLETE (PUBLIC-001A)
+
+- tabla `offering_price_components` (`kind`, `label`, `amount`, `currency`, `sort_order`); identidad `offering_id + kind`
+- migración incremental: `drizzle/0002_luxuriant_sersi.sql` (no `drizzle push`; `0000` y `0001` no se modificaron)
+- 27 Offerings MULTI_COMPONENT, 5 SINGLE_COMPONENT, 0 NO_PRICE
+- técnicos: Matrícula ₡60.000 + Programa ₡72.000
+- especialistas: Matrícula ₡35.000 + Programa ₡500.000
+- diplomado: Matrícula ₡50.000 + Materia ₡75.000 (la hoja dice Materia, no Programa)
+- HV2 grados/másteres: Matrícula ₡1.000 + Materia ₡1.000 (importes prácticos ya autorizados; las hojas HV2 no traen precio)
+- misiones, Gerentes Líderes, Seminario y Doctorado: un solo componente Inversión
+- graduación no se modela como componente de catálogo
+- no se genera un total sintético
+- columnas `price_amount` / `price_currency` quedan en NULL y deprecadas para presentación
+- `/` renderiza el catálogo completo (buscador, filtros, contador, 32 cards) reutilizando `CatalogScreen`
+- `/programas` permanece como alias del mismo catálogo
+- 32 Offerings y UUID conservados; Programs 32; asociaciones 95
+- lint, typecheck y build: PASS
+
+**Latencia de filtros:** COMPLETE (PUBLIC-001B)
+
+- causa: cada checkbox/tecla hacía `router.replace`, navegación App Router, re-render de Server Component, `getCatalogPrograms()` y consulta a Neon; `loading.tsx` podía tapar el catálogo
+- corrección: estado local inmediato + `applyCatalogFilters` en memoria; URL vía `history.replaceState` (API nativa integrada en Next.js 16)
+- búsqueda visual sin debounce; debounce 200 ms solo para sincronizar `q` en la URL
+- query params `q`, `type`, `field` se conservan; URL directa, refresh, back/forward y limpiar filtros siguen funcionando
+- tras la carga inicial, un cambio de filtro no consulta Neon
 - lint, typecheck y build: PASS
 
 **Producto:** CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
@@ -424,7 +451,7 @@ No se deben confundir el esquema persistente con funcionalidades de negocio ya i
 
 ## 15. Próximo objetivo
 
-PUBLIC-001 dejó un catálogo preview funcional sobre los 32 programas reales. El próximo objetivo es iterar visualmente o publicar editorialmente programas y aperturas para un entorno productivo. No completar CMS, leads e integraciones en el mismo ciclo.
+PUBLIC-001B dejó búsqueda y filtros inmediatos en el cliente. El próximo objetivo es una iteración visual/UX del catálogo (PUBLIC-002), o publicar editorialmente programas y aperturas. No completar CMS, leads e integraciones en el mismo ciclo.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -505,7 +532,7 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-Iterar el diseño visual del catálogo, o publicar editorialmente programas y aperturas para un entorno productivo. CMS, “Mis programas de interés” y leads siguen pendientes.
+Iterar el diseño visual/UX del catálogo (PUBLIC-002), o publicar editorialmente programas y aperturas para un entorno productivo. CMS, “Mis programas de interés” y leads siguen pendientes.
 
 No ejecutar ese paso en esta iteración. Tampoco ingerir automáticamente los 7 programas `CSV_ONLY` detectados en `inicios.csv`.
 
@@ -533,6 +560,9 @@ OFFERING PRICE OPTIONAL           COMPLETE
 PUBLIC CATALOG                    COMPLETE
 SEARCH / FILTERS                  COMPLETE
 PROGRAM DETAIL                    COMPLETE
+PRICE COMPONENTS                  COMPLETE
+HOME IS CATALOG                   COMPLETE
+FILTER LATENCY                    COMPLETE
 CMS                               PENDING
 MEDIA                             PENDING
 LEADS                             PENDING
@@ -543,4 +573,4 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** catálogo preview funcional con 32 programas reales; Programs/Offerings siguen en `draft`; CMS y leads no implementados.
+**Estado operativo:** `/` es el catálogo preview completo con 32 programas reales; precios desglosados; filtros locales inmediatos; Programs/Offerings siguen en `draft`; CMS y leads no implementados.

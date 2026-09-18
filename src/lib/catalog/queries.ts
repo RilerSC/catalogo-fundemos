@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import {
   academicTypes,
   knowledgeFields,
+  offeringPriceComponents,
   offerings,
   programKnowledgeFields,
   programs,
@@ -16,6 +17,7 @@ import {
 } from "./format";
 import type {
   CatalogOpening,
+  CatalogPriceComponent,
   CatalogProgramCard,
   CatalogProgramDetail,
   CatalogTaxonomy,
@@ -26,24 +28,53 @@ type ProgramRow = typeof programs.$inferSelect;
 type TypeRow = typeof academicTypes.$inferSelect;
 type FieldRow = typeof knowledgeFields.$inferSelect;
 type OfferingRow = typeof offerings.$inferSelect;
+type PriceComponentRow = typeof offeringPriceComponents.$inferSelect;
 
-function toOpening(row: OfferingRow): CatalogOpening {
+function toPriceComponents(
+  rows: PriceComponentRow[],
+): CatalogPriceComponent[] {
+  return rows
+    .slice()
+    .sort((left, right) => {
+      if (left.sortOrder !== right.sortOrder) {
+        return left.sortOrder - right.sortOrder;
+      }
+      return left.kind.localeCompare(right.kind);
+    })
+    .flatMap((row) => {
+      const formatted = formatPriceLabel(row.amount, row.currency);
+      if (!formatted) {
+        return [];
+      }
+      return [
+        {
+          kind: row.kind,
+          label: row.label,
+          amount: String(row.amount),
+          currency: row.currency,
+          formatted,
+        },
+      ];
+    });
+}
+
+function toOpening(
+  row: OfferingRow,
+  componentRows: PriceComponentRow[],
+): CatalogOpening {
   const startDate = toDateKey(row.startDate);
-  const priceAmount = row.priceAmount ?? null;
-  const priceCurrency = row.priceCurrency ?? null;
   return {
     startDate,
     startDateLabel: formatStartDate(startDate),
     modality: row.modality,
     schedule: row.schedule,
-    priceAmount,
-    priceCurrency,
-    priceLabel: formatPriceLabel(priceAmount, priceCurrency),
+    priceComponents: toPriceComponents(componentRows),
   };
 }
 
 function selectOpening(
   programOfferings: OfferingRow[],
+  componentsByOffering: Map<string, PriceComponentRow[]>,
   preview: boolean,
 ): CatalogOpening | null {
   const today = todayUtcDateKey();
@@ -53,7 +84,11 @@ function selectOpening(
     .sort((left, right) =>
       toDateKey(left.startDate).localeCompare(toDateKey(right.startDate)),
     );
-  return eligible[0] ? toOpening(eligible[0]) : null;
+  const selected = eligible[0];
+  if (!selected) {
+    return null;
+  }
+  return toOpening(selected, componentsByOffering.get(selected.id) ?? []);
 }
 
 function toCard(
@@ -61,12 +96,17 @@ function toCard(
   academicType: TypeRow,
   fields: FieldRow[],
   programOfferings: OfferingRow[],
+  componentsByOffering: Map<string, PriceComponentRow[]>,
   preview: boolean,
 ): CatalogProgramCard | null {
   if (!preview && program.editorialStatus !== "published") {
     return null;
   }
-  const opening = selectOpening(programOfferings, preview);
+  const opening = selectOpening(
+    programOfferings,
+    componentsByOffering,
+    preview,
+  );
   if (!opening) {
     return null;
   }
@@ -83,6 +123,18 @@ function toCard(
     duration: program.duration,
     opening,
   };
+}
+
+function groupComponents(
+  rows: PriceComponentRow[],
+): Map<string, PriceComponentRow[]> {
+  const map = new Map<string, PriceComponentRow[]>();
+  for (const row of rows) {
+    const current = map.get(row.offeringId) ?? [];
+    current.push(row);
+    map.set(row.offeringId, current);
+  }
+  return map;
 }
 
 export async function getAcademicTypes(): Promise<CatalogTaxonomy[]> {
@@ -106,14 +158,21 @@ export async function getKnowledgeFields(): Promise<CatalogTaxonomy[]> {
 export async function getCatalogPrograms(): Promise<CatalogProgramCard[]> {
   const db = getDb();
   const preview = isCatalogPreview();
-  const [programRows, typeRows, fieldRows, associationRows, offeringRows] =
-    await Promise.all([
-      db.select().from(programs),
-      db.select().from(academicTypes),
-      db.select().from(knowledgeFields),
-      db.select().from(programKnowledgeFields),
-      db.select().from(offerings),
-    ]);
+  const [
+    programRows,
+    typeRows,
+    fieldRows,
+    associationRows,
+    offeringRows,
+    componentRows,
+  ] = await Promise.all([
+    db.select().from(programs),
+    db.select().from(academicTypes),
+    db.select().from(knowledgeFields),
+    db.select().from(programKnowledgeFields),
+    db.select().from(offerings),
+    db.select().from(offeringPriceComponents),
+  ]);
 
   const typeById = new Map(typeRows.map((row) => [row.id, row]));
   const fieldById = new Map(fieldRows.map((row) => [row.id, row]));
@@ -133,6 +192,7 @@ export async function getCatalogPrograms(): Promise<CatalogProgramCard[]> {
     current.push(offering);
     offeringsByProgram.set(offering.programId, current);
   }
+  const componentsByOffering = groupComponents(componentRows);
 
   return programRows
     .map((program) => {
@@ -145,6 +205,7 @@ export async function getCatalogPrograms(): Promise<CatalogProgramCard[]> {
         academicType,
         fieldsByProgram.get(program.id) ?? [],
         offeringsByProgram.get(program.id) ?? [],
+        componentsByOffering,
         preview,
       );
     })
@@ -185,20 +246,33 @@ export async function getProgramBySlug(
     return null;
   }
 
-  const [associationRows, offeringRows, fieldRows] = await Promise.all([
-    db
-      .select()
-      .from(programKnowledgeFields)
-      .where(eq(programKnowledgeFields.programId, program.id)),
-    db.select().from(offerings).where(eq(offerings.programId, program.id)),
-    db.select().from(knowledgeFields),
-  ]);
+  const [associationRows, offeringRows, fieldRows, componentRows] =
+    await Promise.all([
+      db
+        .select()
+        .from(programKnowledgeFields)
+        .where(eq(programKnowledgeFields.programId, program.id)),
+      db.select().from(offerings).where(eq(offerings.programId, program.id)),
+      db.select().from(knowledgeFields),
+      db.select().from(offeringPriceComponents),
+    ]);
   const fieldById = new Map(fieldRows.map((row) => [row.id, row]));
   const fields = associationRows
     .map((association) => fieldById.get(association.knowledgeFieldId))
     .filter((field): field is FieldRow => Boolean(field));
+  const offeringIds = new Set(offeringRows.map((row) => row.id));
+  const componentsByOffering = groupComponents(
+    componentRows.filter((row) => offeringIds.has(row.offeringId)),
+  );
 
-  const card = toCard(program, academicType, fields, offeringRows, preview);
+  const card = toCard(
+    program,
+    academicType,
+    fields,
+    offeringRows,
+    componentsByOffering,
+    preview,
+  );
   if (!card) {
     return null;
   }

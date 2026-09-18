@@ -1,8 +1,7 @@
 /**
- * 2027 offerings. price_amount is an optional reference amount when a
- * commercial value is clear enough to persist. It is not a guarantee of total
- * career cost, per-course fee, or enrollment-only fee. Amount and currency
- * must both exist or both be null.
+ * 2027 offerings. Catalog prices live in offering_price_components.
+ * offerings.price_amount / price_currency are legacy and remain null.
+ * Graduation fees are not catalog price components.
  */
 
 export const CSV_ONLY = [
@@ -49,10 +48,102 @@ export const NO_2027_START_DATE = [] as const;
 /** Practical start date authorized for programs that lacked a CSV 2027 date. */
 export const PRACTICAL_START_DATE = "2027-01-05";
 
-/** Catalog total for HV2 degrees/masters: ₡1.000 matrícula + ₡1.000 por materia. */
-export const PRACTICAL_CATALOG_PRICE_CRC = "2000.00";
-
 export const DATE_WITHOUT_PRICE = [] as const;
+
+export type OfferingPriceKind =
+  | "enrollment"
+  | "program"
+  | "subject"
+  | "investment";
+
+export type OfferingPriceComponent = {
+  kind: OfferingPriceKind;
+  label: string;
+  amount: string;
+  currency: string;
+  sortOrder: number;
+};
+
+function crcEnrollment(amount: string): OfferingPriceComponent {
+  return {
+    kind: "enrollment",
+    label: "Matrícula",
+    amount,
+    currency: "CRC",
+    sortOrder: 0,
+  };
+}
+
+function crcProgram(amount: string): OfferingPriceComponent {
+  return {
+    kind: "program",
+    label: "Programa",
+    amount,
+    currency: "CRC",
+    sortOrder: 1,
+  };
+}
+
+function crcSubject(amount: string): OfferingPriceComponent {
+  return {
+    kind: "subject",
+    label: "Materia",
+    amount,
+    currency: "CRC",
+    sortOrder: 1,
+  };
+}
+
+function crcInvestment(amount: string): OfferingPriceComponent {
+  return {
+    kind: "investment",
+    label: "Inversión",
+    amount,
+    currency: "CRC",
+    sortOrder: 0,
+  };
+}
+
+function usdInvestment(amount: string): OfferingPriceComponent {
+  return {
+    kind: "investment",
+    label: "Inversión",
+    amount,
+    currency: "USD",
+    sortOrder: 0,
+  };
+}
+
+/** HOJA DE VENTAS técnicos: Matrícula ₡60.000 + Programa ₡72.000 */
+export const TECNICO_PRICE = [
+  crcEnrollment("60000.00"),
+  crcProgram("72000.00"),
+];
+
+/** HOJA DE VENTAS especialistas: Matrícula ₡35.000 + Programa ₡500.000 */
+export const ESPECIALISTA_PRICE = [
+  crcEnrollment("35000.00"),
+  crcProgram("500000.00"),
+];
+
+/** Diplomado PDF: Matrícula ₡50.000 + Materia ₡75.000 */
+export const DIPLOMADO_PRICE = [
+  crcEnrollment("50000.00"),
+  crcSubject("75000.00"),
+];
+
+/**
+ * HV2 grados/másteres without a sheet price. Practical amounts authorized
+ * earlier: ₡1.000 matrícula + ₡1.000 materia.
+ */
+export const HV2_PRACTICAL_PRICE = [
+  crcEnrollment("1000.00"),
+  crcSubject("1000.00"),
+];
+
+export const INVESTMENT_USD_3500 = [usdInvestment("3500.00")];
+export const INVESTMENT_USD_12000 = [usdInvestment("12000.00")];
+export const INVESTMENT_CRC_60000 = [crcInvestment("60000.00")];
 
 export type OfferingRecord = {
   csvId: string;
@@ -60,8 +151,7 @@ export type OfferingRecord = {
   csvDate: string;
   programSlug: string;
   startDate: string;
-  priceAmount: string | null;
-  priceCurrency: string | null;
+  priceComponents: OfferingPriceComponent[];
   modality: string | null;
   schedule: string | null;
   editorialStatus: "draft";
@@ -74,8 +164,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "doctorado-administracion",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: "12000.00",
-    priceCurrency: "USD",
+    priceComponents: INVESTMENT_USD_12000,
     modality: "100% virtual",
     schedule: "Lecciones sincrónicas un día a la semana de 06:00 a 09:00 p.m.",
     editorialStatus: "draft",
@@ -86,8 +175,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica; CSV original: 26 de enero)",
     programSlug: "diplomado-direccion-empresas",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: "125000.00",
-    priceCurrency: "CRC",
+    priceComponents: DIPLOMADO_PRICE,
     modality: "En línea",
     schedule: null,
     editorialStatus: "draft",
@@ -98,8 +186,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "bachillerato-contaduria",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "100% en línea",
     schedule: null,
     editorialStatus: "draft",
@@ -110,8 +197,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "bachillerato-direccion-empresas",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "En línea",
     schedule: null,
     editorialStatus: "draft",
@@ -122,8 +208,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "licenciatura-direccion-empresas",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "En línea",
     schedule: null,
     editorialStatus: "draft",
@@ -135,8 +220,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "maestria-profesional-direccion-empresas-talento-humano",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "100% virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -148,8 +232,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "maestria-profesional-direccion-empresas-banca-finanzas",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "En línea",
     schedule: null,
     editorialStatus: "draft",
@@ -161,8 +244,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "maestria-profesional-direccion-empresas-mercadeo",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "En línea",
     schedule: null,
     editorialStatus: "draft",
@@ -173,8 +255,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "master-sostenibilidad-innovacion-gestion-empresarial",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "En línea",
     schedule: null,
     editorialStatus: "draft",
@@ -185,8 +266,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "5 de enero (fecha práctica autorizada)",
     programSlug: "master-ejecutivo-ingenieria-financiera",
     startDate: PRACTICAL_START_DATE,
-    priceAmount: PRACTICAL_CATALOG_PRICE_CRC,
-    priceCurrency: "CRC",
+    priceComponents: HV2_PRACTICAL_PRICE,
     modality: "En línea",
     schedule: null,
     editorialStatus: "draft",
@@ -197,8 +277,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "25 de enero",
     programSlug: "tecnico-executive-english-program",
     startDate: "2027-01-25",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -209,8 +288,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "26 de enero",
     programSlug: "tecnico-logistica-internacional-cadena-abastecimiento",
     startDate: "2027-01-26",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -222,8 +300,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "22 al 27 de febrero",
     programSlug: "mision-academica-alta-gerencia-finanzas-corporativas-ia",
     startDate: "2027-02-22",
-    priceAmount: "3500.00",
-    priceCurrency: "USD",
+    priceComponents: INVESTMENT_USD_3500,
     modality: null,
     schedule: null,
     editorialStatus: "draft",
@@ -234,8 +311,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "22 de febrero",
     programSlug: "tecnico-seguros",
     startDate: "2027-02-22",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -246,8 +322,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "22 de febrero",
     programSlug: "tecnico-ciberseguridad-operaciones-red",
     startDate: "2027-02-22",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -258,8 +333,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "23 de febrero",
     programSlug: "tecnico-inteligencia-artificial-empresarial",
     startDate: "2027-02-23",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -270,8 +344,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "23 de febrero",
     programSlug: "especialista-gestion-proyectos",
     startDate: "2027-02-23",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -282,8 +355,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "23 de febrero",
     programSlug: "especialista-contratacion-publica",
     startDate: "2027-02-23",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -294,8 +366,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "29 de marzo",
     programSlug: "especialista-gestion-bursatil-gobernanza",
     startDate: "2027-03-29",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -306,8 +377,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "29 de marzo",
     programSlug: "especialista-prevencion-legitimacion-capitales",
     startDate: "2027-03-29",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -318,8 +388,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "30 de marzo",
     programSlug: "especialista-practica-asesoria-tributaria",
     startDate: "2027-03-30",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -330,8 +399,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "30 de marzo",
     programSlug: "tecnico-marketing-ai-pro",
     startDate: "2027-03-30",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -342,8 +410,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "26 de abril",
     programSlug: "tecnico-gestion-estrategica-deportiva",
     startDate: "2027-04-26",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -354,8 +421,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "26 de abril",
     programSlug: "especialista-regimen-disciplinario-sector-privado-publico",
     startDate: "2027-04-26",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -366,8 +432,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "26 de abril",
     programSlug: "especialista-gobierno-corporativo",
     startDate: "2027-04-26",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -378,8 +443,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "27 de abril",
     programSlug: "especialista-cumplimiento-normativo",
     startDate: "2027-04-27",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -390,8 +454,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "24 al 28 de mayo",
     programSlug: "programa-gerentes-lideres-4-0",
     startDate: "2027-05-24",
-    priceAmount: "3500.00",
-    priceCurrency: "USD",
+    priceComponents: INVESTMENT_USD_3500,
     modality: "Presencial (Centro de capacitaciones Oikoumene, Cartago)",
     schedule: null,
     editorialStatus: "draft",
@@ -402,8 +465,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "24 de mayo",
     programSlug: "especialista-riesgos",
     startDate: "2027-05-24",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -414,8 +476,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "25 de mayo",
     programSlug: "especialista-control-interno-auditoria",
     startDate: "2027-05-25",
-    priceAmount: "535000.00",
-    priceCurrency: "CRC",
+    priceComponents: ESPECIALISTA_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -426,8 +487,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "14 al 19 de junio",
     programSlug: "mision-academica-seguros-gerencia-aseguradora",
     startDate: "2027-06-14",
-    priceAmount: "3500.00",
-    priceCurrency: "USD",
+    priceComponents: INVESTMENT_USD_3500,
     modality: null,
     schedule: "lunes a viernes de 9 a.m. a 2:00 p.m.",
     editorialStatus: "draft",
@@ -438,8 +498,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "28 de junio",
     programSlug: "tecnico-direccion-empresas",
     startDate: "2027-06-28",
-    priceAmount: "132000.00",
-    priceCurrency: "CRC",
+    priceComponents: TECNICO_PRICE,
     modality: "Virtual",
     schedule: null,
     editorialStatus: "draft",
@@ -450,8 +509,7 @@ export const OFFERINGS: OfferingRecord[] = [
     csvDate: "3 de noviembre",
     programSlug: "seminario-cierre-fiscal",
     startDate: "2027-11-03",
-    priceAmount: "60000.00",
-    priceCurrency: "CRC",
+    priceComponents: INVESTMENT_CRC_60000,
     modality: "Presencial",
     schedule: "8:00 a.m. a 12 m.d.",
     editorialStatus: "draft",

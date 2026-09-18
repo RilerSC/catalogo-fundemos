@@ -3,14 +3,20 @@ export type CatalogTaxonomy = {
   name: string;
 };
 
+export type CatalogPriceComponent = {
+  kind: "enrollment" | "program" | "subject" | "investment";
+  label: string;
+  amount: string;
+  currency: string;
+  formatted: string;
+};
+
 export type CatalogOpening = {
   startDate: string;
   startDateLabel: string;
   modality: string | null;
   schedule: string | null;
-  priceAmount: string | null;
-  priceCurrency: string | null;
-  priceLabel: string | null;
+  priceComponents: CatalogPriceComponent[];
 };
 
 export type CatalogProgramCard = {

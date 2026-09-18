@@ -1,9 +1,13 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ProgramCard } from "@/components/catalog/ProgramCard";
-import { applyCatalogFilters, catalogQueryString } from "@/lib/catalog/search";
+import {
+  applyCatalogFilters,
+  catalogQueryString,
+  parseCatalogSearchParams,
+} from "@/lib/catalog/search";
 import type {
   CatalogFilters,
   CatalogProgramCard,
@@ -17,7 +21,13 @@ type CatalogExplorerProps = {
   urlFilters: CatalogFilters;
 };
 
-const emptySubscribe = () => () => undefined;
+const SEARCH_URL_SYNC_MS = 200;
+
+const EMPTY_FILTERS: CatalogFilters = {
+  query: "",
+  typeSlugs: [],
+  fieldSlugs: [],
+};
 
 export function CatalogExplorer({
   programs,
@@ -25,43 +35,66 @@ export function CatalogExplorer({
   knowledgeFields,
   urlFilters,
 }: CatalogExplorerProps) {
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const isClient = useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
+  const [filters, setFilters] = useState<CatalogFilters>(urlFilters);
+  const filtersRef = useRef(urlFilters);
+  const urlSyncTimer = useRef<number | null>(null);
 
-  const query = isClient ? (searchParams.get("q") ?? "") : urlFilters.query;
-  const typeSlugs = isClient ? searchParams.getAll("type") : urlFilters.typeSlugs;
-  const fieldSlugs = isClient
-    ? searchParams.getAll("field")
-    : urlFilters.fieldSlugs;
-  const hasFilters = Boolean(query || typeSlugs.length || fieldSlugs.length);
+  useEffect(() => {
+    function onPopState() {
+      const next = parseCatalogSearchParams(
+        new URLSearchParams(window.location.search),
+      );
+      filtersRef.current = next;
+      setFilters(next);
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      if (urlSyncTimer.current !== null) {
+        window.clearTimeout(urlSyncTimer.current);
+      }
+    };
+  }, []);
 
   const visiblePrograms = useMemo(
-    () =>
-      applyCatalogFilters(programs, {
-        query,
-        typeSlugs,
-        fieldSlugs,
-      }),
-    [programs, query, typeSlugs, fieldSlugs],
+    () => applyCatalogFilters(programs, filters),
+    [programs, filters],
+  );
+  const hasFilters = Boolean(
+    filters.query || filters.typeSlugs.length || filters.fieldSlugs.length,
   );
 
-  function replaceFilters(next: {
-    query?: string;
-    typeSlugs?: string[];
-    fieldSlugs?: string[];
-  }) {
-    const href = `${pathname}${catalogQueryString({
-      query: next.query ?? query,
-      typeSlugs: next.typeSlugs ?? typeSlugs,
-      fieldSlugs: next.fieldSlugs ?? fieldSlugs,
-    })}`;
-    router.replace(href, { scroll: false });
+  function syncUrl(next: CatalogFilters) {
+    const href = `${pathname}${catalogQueryString(next)}`;
+    const current = `${window.location.pathname}${window.location.search}`;
+    if (href === current) {
+      return;
+    }
+    // History API keeps the URL shareable without App Router navigation,
+    // so CatalogScreen does not refetch Neon on each interaction.
+    window.history.replaceState(null, "", href);
+  }
+
+  function applyFilters(
+    patch: (current: CatalogFilters) => CatalogFilters,
+    url: "now" | "debounce",
+  ) {
+    const next = patch(filtersRef.current);
+    filtersRef.current = next;
+    setFilters(next);
+    if (urlSyncTimer.current !== null) {
+      window.clearTimeout(urlSyncTimer.current);
+      urlSyncTimer.current = null;
+    }
+    if (url === "debounce") {
+      urlSyncTimer.current = window.setTimeout(() => {
+        syncUrl(next);
+        urlSyncTimer.current = null;
+      }, SEARCH_URL_SYNC_MS);
+      return;
+    }
+    syncUrl(next);
   }
 
   function toggleValue(values: string[], slug: string): string[] {
@@ -81,13 +114,25 @@ export function CatalogExplorer({
             <FilterFields
               academicTypes={academicTypes}
               knowledgeFields={knowledgeFields}
-              typeSlugs={typeSlugs}
-              fieldSlugs={fieldSlugs}
+              typeSlugs={filters.typeSlugs}
+              fieldSlugs={filters.fieldSlugs}
               onToggleType={(slug) =>
-                replaceFilters({ typeSlugs: toggleValue(typeSlugs, slug) })
+                applyFilters(
+                  (current) => ({
+                    ...current,
+                    typeSlugs: toggleValue(current.typeSlugs, slug),
+                  }),
+                  "now",
+                )
               }
               onToggleField={(slug) =>
-                replaceFilters({ fieldSlugs: toggleValue(fieldSlugs, slug) })
+                applyFilters(
+                  (current) => ({
+                    ...current,
+                    fieldSlugs: toggleValue(current.fieldSlugs, slug),
+                  }),
+                  "now",
+                )
               }
             />
           </div>
@@ -96,13 +141,25 @@ export function CatalogExplorer({
           <FilterFields
             academicTypes={academicTypes}
             knowledgeFields={knowledgeFields}
-            typeSlugs={typeSlugs}
-            fieldSlugs={fieldSlugs}
+            typeSlugs={filters.typeSlugs}
+            fieldSlugs={filters.fieldSlugs}
             onToggleType={(slug) =>
-              replaceFilters({ typeSlugs: toggleValue(typeSlugs, slug) })
+              applyFilters(
+                (current) => ({
+                  ...current,
+                  typeSlugs: toggleValue(current.typeSlugs, slug),
+                }),
+                "now",
+              )
             }
             onToggleField={(slug) =>
-              replaceFilters({ fieldSlugs: toggleValue(fieldSlugs, slug) })
+              applyFilters(
+                (current) => ({
+                  ...current,
+                  fieldSlugs: toggleValue(current.fieldSlugs, slug),
+                }),
+                "now",
+              )
             }
           />
         </div>
@@ -116,8 +173,11 @@ export function CatalogExplorer({
             <input
               type="search"
               name="q"
-              value={query}
-              onChange={(event) => replaceFilters({ query: event.target.value })}
+              value={filters.query}
+              onChange={(event) => {
+                const query = event.target.value;
+                applyFilters((current) => ({ ...current, query }), "debounce");
+              }}
               placeholder="Ej. riesgos, dirección, inteligencia artificial"
               className="w-full rounded-xl border border-[#ddd6cb] bg-white px-3 py-2.5 text-[#14263d]"
             />
@@ -131,9 +191,7 @@ export function CatalogExplorer({
           <p className="mt-3">
             <button
               type="button"
-              onClick={() =>
-                replaceFilters({ query: "", typeSlugs: [], fieldSlugs: [] })
-              }
+              onClick={() => applyFilters(() => EMPTY_FILTERS, "now")}
               className="text-sm font-medium text-[#1e3a5f] underline"
             >
               Limpiar filtros
@@ -147,9 +205,7 @@ export function CatalogExplorer({
             </p>
             <button
               type="button"
-              onClick={() =>
-                replaceFilters({ query: "", typeSlugs: [], fieldSlugs: [] })
-              }
+              onClick={() => applyFilters(() => EMPTY_FILTERS, "now")}
               className="mt-4 rounded-full bg-[#14263d] px-4 py-2 text-sm text-white"
             >
               Limpiar filtros

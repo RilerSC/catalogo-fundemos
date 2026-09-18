@@ -74,6 +74,16 @@ export function parseCatalogFilters(
   };
 }
 
+export function parseCatalogSearchParams(
+  searchParams: Pick<URLSearchParams, "get" | "getAll">,
+): CatalogFilters {
+  return parseCatalogFilters({
+    q: searchParams.get("q") ?? undefined,
+    type: searchParams.getAll("type"),
+    field: searchParams.getAll("field"),
+  });
+}
+
 function firstParam(value: string | string[] | undefined): string | undefined {
   if (Array.isArray(value)) {
     return value[0];

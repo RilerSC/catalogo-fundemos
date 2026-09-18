@@ -25,6 +25,13 @@ export const editorialStatusEnum = pgEnum("editorial_status", [
   "published",
 ]);
 
+export const offeringPriceKindEnum = pgEnum("offering_price_kind", [
+  "enrollment",
+  "program",
+  "subject",
+  "investment",
+]);
+
 export const leadChannelEnum = pgEnum("lead_channel", ["email", "whatsapp"]);
 
 export const leadDeliveryStatusEnum = pgEnum("lead_delivery_status", [
@@ -133,7 +140,9 @@ export const offerings = pgTable(
     startDate: date("start_date").notNull(),
     modality: text("modality"),
     schedule: text("schedule"),
+    /** @deprecated Presentation uses offering_price_components. Kept nullable for compatibility. */
     priceAmount: numeric("price_amount", { precision: 12, scale: 2 }),
+    /** @deprecated Presentation uses offering_price_components. Kept nullable for compatibility. */
     priceCurrency: text("price_currency"),
     editorialStatus: editorialStatusEnum("editorial_status")
       .notNull()
@@ -152,6 +161,29 @@ export const offerings = pgTable(
         (${table.priceAmount} IS NOT NULL AND ${table.priceCurrency} IS NOT NULL)
       )`,
     ),
+  ],
+);
+
+export const offeringPriceComponents = pgTable(
+  "offering_price_components",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    offeringId: uuid("offering_id")
+      .notNull()
+      .references(() => offerings.id, { onDelete: "cascade" }),
+    kind: offeringPriceKindEnum("kind").notNull(),
+    label: text("label").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    currency: text("currency").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("offering_price_components_offering_kind_uidx").on(
+      table.offeringId,
+      table.kind,
+    ),
+    index("offering_price_components_offering_id_idx").on(table.offeringId),
   ],
 );
 
@@ -273,12 +305,23 @@ export const programKnowledgeFieldsRelations = relations(
   }),
 );
 
-export const offeringsRelations = relations(offerings, ({ one }) => ({
+export const offeringsRelations = relations(offerings, ({ one, many }) => ({
   program: one(programs, {
     fields: [offerings.programId],
     references: [programs.id],
   }),
+  priceComponents: many(offeringPriceComponents),
 }));
+
+export const offeringPriceComponentsRelations = relations(
+  offeringPriceComponents,
+  ({ one }) => ({
+    offering: one(offerings, {
+      fields: [offeringPriceComponents.offeringId],
+      references: [offerings.id],
+    }),
+  }),
+);
 
 export const mediaAssetsRelations = relations(mediaAssets, ({ one }) => ({
   program: one(programs, {

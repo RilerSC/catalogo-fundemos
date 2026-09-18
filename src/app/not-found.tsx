@@ -10,7 +10,7 @@ export default function NotFound() {
         El programa o la ruta que busca no existe en el catálogo.
       </p>
       <p className="mt-6">
-        <Link href="/programas" className="font-medium text-[#1e3a5f] underline">
+        <Link href="/" className="font-medium text-[#1e3a5f] underline">
           Volver al catálogo
         </Link>
       </p>

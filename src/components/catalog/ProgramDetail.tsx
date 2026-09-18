@@ -7,7 +7,7 @@ export function ProgramDetail({ program }: { program: CatalogProgramDetail }) {
   return (
     <article className="mx-auto max-w-3xl">
       <p className="text-sm">
-        <Link href="/programas" className="font-medium text-[#1e3a5f]">
+        <Link href="/" className="font-medium text-[#1e3a5f]">
           ← Volver al catálogo
         </Link>
       </p>
@@ -41,12 +41,12 @@ export function ProgramDetail({ program }: { program: CatalogProgramDetail }) {
               <dd className="font-medium">{program.duration}</dd>
             </div>
           ) : null}
-          {opening.priceLabel ? (
-            <div>
-              <dt className="text-[#5b6575]">Inversión</dt>
-              <dd className="font-medium">{opening.priceLabel}</dd>
+          {opening.priceComponents.map((component) => (
+            <div key={component.kind}>
+              <dt className="text-[#5b6575]">{component.label}</dt>
+              <dd className="font-medium">{component.formatted}</dd>
             </div>
-          ) : null}
+          ))}
         </dl>
       ) : null}
       {program.knowledgeFields.length > 0 ? (

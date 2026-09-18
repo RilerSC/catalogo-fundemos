@@ -48,12 +48,14 @@ export function ProgramCard({
             <dd>{program.duration}</dd>
           </div>
         ) : null}
-        {program.opening?.priceLabel ? (
-          <div>
-            <dt className="sr-only">Inversión</dt>
-            <dd>Inversión: {program.opening.priceLabel}</dd>
+        {program.opening?.priceComponents.map((component) => (
+          <div key={component.kind}>
+            <dt className="sr-only">{component.label}</dt>
+            <dd>
+              {component.label}: {component.formatted}
+            </dd>
           </div>
-        ) : null}
+        ))}
       </dl>
       {visibleFields.length > 0 ? (
         <ul className="mt-4 flex flex-wrap gap-2">

@@ -13,7 +13,7 @@ export function SiteHeader() {
           </p>
         </Link>
         <nav aria-label="Principal" className="flex items-center gap-4 text-sm">
-          <Link href="/programas" className="font-medium text-[#1e3a5f]">
+          <Link href="/" className="font-medium text-[#1e3a5f]">
             Catálogo
           </Link>
         </nav>
