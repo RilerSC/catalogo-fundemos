@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/db/seed.ts",
-    "db:seed:programs": "tsx src/db/seed-programs.ts"
+    "db:seed:programs": "tsx src/db/seed-programs.ts",
+    "db:seed:offerings": "tsx src/db/seed-offerings.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

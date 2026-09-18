@@ -1,5 +1,6 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
+  check,
   date,
   index,
   integer,
@@ -17,6 +18,7 @@ import {
  * Editorial publication is independent from temporal eligibility.
  * Public visibility is resolved in the application from published program +
  * published offering whose startDate is today or later. Not persisted.
+ * Price is optional and does not affect visibility.
  */
 export const editorialStatusEnum = pgEnum("editorial_status", [
   "draft",
@@ -131,8 +133,8 @@ export const offerings = pgTable(
     startDate: date("start_date").notNull(),
     modality: text("modality"),
     schedule: text("schedule"),
-    priceAmount: numeric("price_amount", { precision: 12, scale: 2 }).notNull(),
-    priceCurrency: text("price_currency").notNull(),
+    priceAmount: numeric("price_amount", { precision: 12, scale: 2 }),
+    priceCurrency: text("price_currency"),
     editorialStatus: editorialStatusEnum("editorial_status")
       .notNull()
       .default("draft"),
@@ -142,6 +144,14 @@ export const offerings = pgTable(
     index("offerings_program_id_idx").on(table.programId),
     index("offerings_start_date_idx").on(table.startDate),
     index("offerings_editorial_status_idx").on(table.editorialStatus),
+    check(
+      "offerings_price_amount_currency_chk",
+      sql`(
+        (${table.priceAmount} IS NULL AND ${table.priceCurrency} IS NULL)
+        OR
+        (${table.priceAmount} IS NOT NULL AND ${table.priceCurrency} IS NOT NULL)
+      )`,
+    ),
   ],
 );
 

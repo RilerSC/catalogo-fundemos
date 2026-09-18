@@ -16,13 +16,11 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 
 ## 2. Estado general
 
-**Fase:** Programas iniciales ingeridos  
-**Estado:** PROGRAMS INGESTED  
-**Fecha de referencia:** 2026-09-17
+**Fase:** Catálogo público preview  
+**Estado:** PUBLIC CATALOG PREVIEW  
+**Fecha de referencia:** 2026-09-18
 
-El discovery, la arquitectura, el scaffold Next.js, el esquema físico, Neon, la taxonomía maestra y los 32 programas iniciales están cerrados. Cada programa tiene tipo académico y campos de conocimiento. No hay aperturas; el catálogo público todavía no está implementado.
-
-No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen la siguiente iteración. El catálogo, CMS, leads e integraciones aún no están construidos.
+El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. Existe un catálogo público funcional en preview (`/`, `/programas`, `/programas/[slug]`) que lee Neon. Los registros siguen en `draft`; la regla productiva de publicación no se debilitó. CMS, leads e integraciones no están construidos.
 
 ---
 
@@ -42,6 +40,7 @@ No existen actualmente decisiones funcionales o arquitectónicas fundamentales q
 - `docs/source/categorias-programas.md`
 - `docs/source/HOJA DE VENTAS/` (23 programas de educación continua)
 - `docs/source/HV2/` (9 programas de grado y posgrado)
+- `docs/source/inicios.csv` (fechas de inicio 2027; el año lo confirmó el negocio)
 
 No se requiere crear ADR, backlog, roadmap, runbooks u otra documentación adicional antes de continuar la implementación.
 
@@ -344,7 +343,7 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - archivos: `drizzle.config.ts`, `src/db/schema.ts`, `src/db/index.ts` (cliente lazy)
 - migración: `drizzle/0000_sweet_mathemanic.sql`
 - variable documentada: `DATABASE_URL` en `.env.example`
-- precio de apertura: `numeric(12,2)` obligatorio + `price_currency` texto mínimo
+- precio de apertura: `numeric(12,2)` + `price_currency`; ambos opcionales desde DATA-006 (inicialmente NOT NULL en DATA-001)
 
 **Neon / migración aplicada:** COMPLETE (DATA-002)
 
@@ -377,7 +376,47 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - `offerings`, `media_assets` y leads: 0
 - lint, typecheck y build: PASS
 
-**Producto:** el catálogo público, CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
+**Aperturas 2027:** COMPLETE (DATA-005) + fecha práctica 2027-01-05
+
+- fechas 2027: `docs/source/inicios.csv` (filas reales: 30)
+- fecha práctica autorizada `2027-01-05` para programas del inventario que no tenían fecha CSV
+- datos comerciales: `offeringCandidate` en `src/db/data/programs.ts`
+- dataset versionado: `src/db/data/offerings.ts`
+- comando: `npm run db:seed:offerings`
+- idempotente por `program_id + start_date` (lookup de aplicación; el schema no tiene unique de apertura)
+- reconciliación vigente: MATCHED_EXISTING_PROGRAM 23, CSV_ONLY 7, NO_2027_START_DATE 0, DATE_WITHOUT_PRICE 0, PRICE_WITHOUT_CURRENCY 0, VALID_OFFERING 32
+- `offerings`: 32 registros en `draft`, todos con `start_date` 2027
+- 10 aperturas con fecha práctica `2027-01-05`
+- `price_amount` del catálogo = matrícula + programa/materia cuando la hoja de ventas trae ambos (Técnico ₡132.000, Especialista ₡535.000, Diplomado ₡125.000). HV2 grados/másteres usan total práctico ₡2.000. Misiones, gerentes, seminario y doctorado conservan la inversión única de la hoja.
+- CSV_ONLY no ingeridos: Auditoría Financiera Integral, Tecnologías de Semiconductores, Lean Practitioner, Gestión de Talento Humano, Ciberseguridad Empresarial, Auditoría del Sector Público, Misión Liderazgo financiero México
+- `programs` permanece en 32; `program_knowledge_fields` permanece en 95; taxonomías 11 + 6; media/leads 0
+- lint, typecheck y build: PASS
+
+**Precio opcional de Offering:** COMPLETE (DATA-006)
+
+- `price_amount` y `price_currency` aceptan NULL
+- consistencia: ambos NULL o ambos con valor (`offerings_price_amount_currency_chk`)
+- `start_date` sigue NOT NULL
+- migración incremental: `drizzle/0001_optimal_sinister_six.sql` (no `drizzle push`; `0000_sweet_mathemanic` no se modificó)
+- 32 Offerings conservados; UUID y precios existentes no se borraron ni se convirtieron a NULL
+- cero no se usa como precio desconocido
+- visibilidad futura no depende del precio: publicado + Offering publicado + `start_date >= hoy`
+- UI futura: si `priceAmount !== null` mostrar el valor; si es NULL, ocultar el bloque de precio (sin “Consultar precio”, “₡0”, “Gratis” ni equivalentes)
+- `price_amount` es un importe de referencia provisional, no el modelo comercial definitivo
+- lint, typecheck y build: PASS
+
+**Catálogo público preview:** COMPLETE (PUBLIC-001)
+
+- rutas: `/`, `/programas`, `/programas/[slug]`
+- lectura server-side desde Neon (`src/lib/catalog/`)
+- preview de `draft` si `VERCEL_ENV !== production` o `CATALOG_PREVIEW=true`; en producción Vercel solo valen publicados + fecha vigente
+- búsqueda textual accent-insensitive; filtros combinables por tipo (OR) y campo (OR); AND entre dimensiones y con la búsqueda
+- estado en query: `q`, `type`, `field`
+- precio: se muestra como “Inversión” solo si amount y currency existen; NULL no renderiza bloque
+- sin CMS, leads, intereses, imágenes ni analytics
+- lint, typecheck y build: PASS
+
+**Producto:** CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
 
 No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
 
@@ -385,9 +424,7 @@ No se deben confundir el esquema persistente con funcionalidades de negocio ya i
 
 ## 15. Próximo objetivo
 
-DATA-004 ya dejó ingeridos los 32 programas y sus clasificaciones.
-
-El próximo objetivo es una iteración funcional focal: crear las aperturas (`Offering`) a partir de los candidatos de precio/fecha/modalidad ya extraídos, o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
+PUBLIC-001 dejó un catálogo preview funcional sobre los 32 programas reales. El próximo objetivo es iterar visualmente o publicar editorialmente programas y aperturas para un entorno productivo. No completar CMS, leads e integraciones en el mismo ciclo.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -468,9 +505,9 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-Crear las aperturas iniciales (`Offering`) usando únicamente fechas, precios, modalidad y horarios explícitos en las hojas de venta, sin publicar visibilidad pública automáticamente ni abrir CMS o catálogo en el mismo ciclo.
+Iterar el diseño visual del catálogo, o publicar editorialmente programas y aperturas para un entorno productivo. CMS, “Mis programas de interés” y leads siguen pendientes.
 
-No ejecutar ese paso en esta iteración.
+No ejecutar ese paso en esta iteración. Tampoco ingerir automáticamente los 7 programas `CSV_ONLY` detectados en `inicios.csv`.
 
 ---
 
@@ -491,9 +528,11 @@ NEON PROVISIONING                 COMPLETE
 INITIAL MIGRATION APPLIED         COMPLETE
 TAXONOMY SEED                     COMPLETE
 PROGRAM INGESTION                 COMPLETE
-PUBLIC CATALOG                    PENDING
-SEARCH / FILTERS                  PENDING
-PROGRAM DETAIL                    PENDING
+OFFERING INGESTION                COMPLETE
+OFFERING PRICE OPTIONAL           COMPLETE
+PUBLIC CATALOG                    COMPLETE
+SEARCH / FILTERS                  COMPLETE
+PROGRAM DETAIL                    COMPLETE
 CMS                               PENDING
 MEDIA                             PENDING
 LEADS                             PENDING
@@ -504,4 +543,4 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** 32 programas ingeridos con tipo académico y campos de conocimiento; sin aperturas ni catálogo público.
+**Estado operativo:** catálogo preview funcional con 32 programas reales; Programs/Offerings siguen en `draft`; CMS y leads no implementados.

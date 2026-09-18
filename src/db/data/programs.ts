@@ -28,6 +28,7 @@ export type OfferingCandidate = {
   startDate?: string;
   modality?: string;
   schedule?: string;
+  /** Catalog total: matrícula + programa/materia when the sheet has both. */
   priceAmount?: string;
   priceCurrency?: string;
 };
@@ -74,7 +75,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Diplomado en Dirección de Empresas",
     seoDescription: "El Diplomado en Dirección de Empresas está diseñado para formar profesionales capaces de comprender y aplicar los principios fundamentales de la...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "En línea"},
+    offeringCandidate: {"modality": "En línea", "priceAmount": "125000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Contratación Pública",
@@ -92,7 +93,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Contratación Pública",
     seoDescription: "El Especialista en Contratación Pública contiene un programa muy completo, donde desde un enfoque teórico y práctico se analizan cada uno de los conceptos...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Control Interno y Auditoría",
@@ -110,7 +111,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Control Interno y Auditoría",
     seoDescription: "Diseñado para brindarte una guía práctica y estratégica en el ámbito profesional de la auditoría. Aprenderás cómo alinear tus habilidades y conocimientos...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Cumplimiento Normativo",
@@ -128,7 +129,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Cumplimiento Normativo",
     seoDescription: "El programa en Compliance establece un marco formal, integral y continuo para que los profesionales obtengan una formación integral, concentrada en...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Gestión Bursátil y Gobernanza",
@@ -146,7 +147,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Gestión Bursátil y Gobernanza",
     seoDescription: "El funcionamiento de los mercados financieros exige que los profesionales del sector cuenten con conocimientos técnicos sobre los instrumentos de inversión,...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Gestión de Proyectos",
@@ -164,7 +165,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Gestión de Proyectos",
     seoDescription: "El programa Especialista en Gestión de Proyectos está diseñado para formar profesionales capaces de planificar, ejecutar, controlar y cerrar proyectos de...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Gobierno Corporativo",
@@ -182,7 +183,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Gobierno Corporativo",
     seoDescription: "El programa de Especialista en Gobierno Corporativo permite conocer el marco internacional de sanas prácticas asociadas a una buena gobernanza,...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Práctica y Asesoría Tributaria",
@@ -200,7 +201,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Práctica y Asesoría Tributaria",
     seoDescription: "Este programa ha sido diseñado para que las personas participantes dominen de forma práctica y aplicada los principales tratamientos del sistema tributario...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Prevención y Legitimación de Capitales",
@@ -218,7 +219,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Prevención y Legitimación de Capitales",
     seoDescription: "El programa especialista en prevención de legitimación de capitales es un compendio integral que permite conocer sobre las tipologías de legitimación de...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Régimen Disciplinario Sector Privado y Público",
@@ -236,7 +237,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Régimen Disciplinario Sector Privado y Público",
     seoDescription: "Este programa ofrece una formación integral, práctica y actualizada sobre el régimen disciplinario aplicable en el sector público y privado en Costa Rica,...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Especialista en Riesgos",
@@ -254,7 +255,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Especialista en Riesgos",
     seoDescription: "El Especialista en Riesgos está diseñado para desarrollar en los participantes las competencias necesarias para identificar, analizar, evaluar y gestionar...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "500000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "535000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Misión académica internacional: Alta Gerencia y Finanzas Corporativas para la toma de decisiones apoyado en IA",
@@ -344,7 +345,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico en Inteligencia Artificial Empresarial: Estrategias, Datos y Decisiones",
     seoDescription: "Este programa técnico tiene como propósito formar profesionales capaces de comprender, aplicar y liderar proyectos de inteligencia artificial (IA) dentro...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Técnico en Ciberseguridad y Operaciones de Red",
@@ -362,7 +363,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico en Ciberseguridad y Operaciones de Red",
     seoDescription: "Este programa técnico capacita a los participantes en ciberseguridad, operaciones de red y administración de sistemas Linux. Cubre desde los fundamentos de...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Técnico en Dirección de Empresas",
@@ -380,7 +381,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico en Dirección de Empresas",
     seoDescription: "El Técnico en Dirección de Empresas está diseñado para formar profesionales capaces de planificar, organizar, dirigir y controlar los recursos, procesos y...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Técnico en Gestión Estratégica Deportiva",
@@ -398,7 +399,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico en Gestión Estratégica Deportiva",
     seoDescription: "El Técnico en Gestión Estratégica Deportiva de la Universidad FUNDEPOS, busca formar profesionales técnicos en gestión estratégica deportiva, capaces de...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Técnico en Logística Internacional y Cadena de Abastecimiento",
@@ -416,7 +417,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico en Logística Internacional y Cadena de Abastecimiento",
     seoDescription: "Nuestro técnico en Logística Internacional y Cadena de Abastecimiento te capacita para liderar y optimizar cada etapa de la cadena de suministro, asegurando...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Técnico en Seguros",
@@ -434,7 +435,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico en Seguros",
     seoDescription: "El programa Técnico en Seguros, ofrece a los interesados el desarrollo de conocimiento y profundizar en qué consiste la actividad de seguros en Costa Rica....",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Técnico Executive English Program",
@@ -452,7 +453,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico Executive English Program",
     seoDescription: "El Técnico en Executive English Program está diseñado para profesionales que requieren dominar el idioma inglés en contextos empresariales reales,...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Técnico en Marketing AI PRO",
@@ -470,7 +471,7 @@ export const PROGRAMS: ProgramRecord[] = [
     seoTitle: "Técnico en Marketing AI PRO",
     seoDescription: "El Técnico en Marketing AI Pro está diseñado para formar profesionales capaces de integrar la inteligencia artificial en las estrategias de marketing...",
     editorialStatus: "draft",
-    offeringCandidate: {"modality": "Virtual", "priceAmount": "72000.00", "priceCurrency": "CRC"},
+    offeringCandidate: {"modality": "Virtual", "priceAmount": "132000.00", "priceCurrency": "CRC"},
   },
   {
     name: "Bachillerato en Contaduría",

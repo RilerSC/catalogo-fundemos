@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
+import {
+  PreviewBanner,
+  SiteFooter,
+  SiteHeader,
+} from "@/components/catalog/SiteChrome";
+import { isCatalogPreview } from "@/lib/catalog/visibility";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Catálogo Web FUNDEPOS",
-  description: "Base técnica del catálogo de oferta académica de Universidad FUNDEPOS.",
+  title: {
+    default: "Oferta académica | Universidad FUNDEPOS",
+    template: "%s | Universidad FUNDEPOS",
+  },
+  description:
+    "Explore programas de Universidad FUNDEPOS: técnicos, especialistas, grados y posgrados.",
 };
 
 export default function RootLayout({
@@ -13,7 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <PreviewBanner enabled={isCatalogPreview()} />
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }
