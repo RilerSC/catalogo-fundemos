@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>
+      <body className="flex min-h-dvh flex-col">
         <PreviewBanner enabled={isCatalogPreview()} />
         <SiteHeader />
         {children}

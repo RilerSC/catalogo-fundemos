@@ -30,22 +30,24 @@ export async function CatalogScreen({ searchParams }: CatalogScreenProps) {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-semibold text-[#14263d] md:text-4xl">
-        Catálogo de programas
-      </h1>
-      <p className="mt-3 max-w-2xl text-[#5b6575]">
-        Combine búsqueda, tipo de programa y campo de conocimiento para
-        encontrar la oferta que le interesa.
-      </p>
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:py-8">
+      <header className="max-w-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-navy md:text-3xl">
+          Oferta académica
+        </h1>
+        <p className="mt-1.5 text-sm text-muted md:text-base">
+          Explore técnicos, especialistas, grados y posgrados. Busque o filtre
+          por tipo y campo de conocimiento.
+        </p>
+      </header>
       {loadError ? (
-        <p className="mt-8 rounded-2xl bg-white p-6 text-[#5b6575]">
+        <p className="mt-8 rounded-2xl bg-card p-6 text-muted">
           No pudimos cargar el catálogo en este momento. Intente de nuevo más
           tarde.
         </p>
       ) : (
-        <div className="mt-8">
-          <Suspense fallback={<p>Cargando catálogo…</p>}>
+        <div className="mt-6">
+          <Suspense fallback={<p className="text-muted">Cargando catálogo…</p>}>
             <CatalogExplorer
               programs={programs}
               academicTypes={academicTypes}

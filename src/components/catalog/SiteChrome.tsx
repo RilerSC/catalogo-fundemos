@@ -2,18 +2,21 @@ import Link from "next/link";
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-[#ddd6cb] bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+    <header className="sticky top-0 z-30 border-b border-line bg-card/95 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="min-w-0">
-          <p className="text-xs tracking-[0.18em] text-[#8b6b2e] uppercase">
+          <p className="text-[0.68rem] font-medium tracking-[0.2em] text-accent uppercase">
             Universidad FUNDEPOS
           </p>
-          <p className="text-lg font-semibold text-[#14263d]">
+          <p className="text-base font-semibold tracking-tight text-navy">
             Oferta académica
           </p>
         </Link>
-        <nav aria-label="Principal" className="flex items-center gap-4 text-sm">
-          <Link href="/" className="font-medium text-[#1e3a5f]">
+        <nav aria-label="Principal">
+          <Link
+            href="/"
+            className="rounded-full px-3 py-2 text-sm font-medium text-navy-soft hover:bg-paper"
+          >
             Catálogo
           </Link>
         </nav>
@@ -24,8 +27,8 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t border-[#ddd6cb]">
-      <div className="mx-auto max-w-6xl px-4 py-8 text-sm text-[#5b6575]">
+    <footer className="mt-auto border-t border-line">
+      <div className="mx-auto max-w-7xl px-4 py-8 text-sm text-muted">
         Universidad FUNDEPOS · Catálogo de oferta académica
       </div>
     </footer>
@@ -37,7 +40,7 @@ export function PreviewBanner({ enabled }: { enabled: boolean }) {
     return null;
   }
   return (
-    <p className="bg-[#14263d] px-4 py-2 text-center text-xs text-white">
+    <p className="bg-navy px-4 py-2 text-center text-xs text-white">
       Vista previa: se muestran programas en borrador. En producción solo
       aparecerán los publicados con apertura vigente.
     </p>

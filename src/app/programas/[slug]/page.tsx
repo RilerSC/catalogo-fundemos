@@ -31,7 +31,7 @@ export default async function ProgramPage({ params }: PageProps) {
   }
 
   return (
-    <main className="px-4 py-10">
+    <main className="flex-1 px-4 py-8 md:py-10">
       <ProgramDetail program={program} />
     </main>
   );

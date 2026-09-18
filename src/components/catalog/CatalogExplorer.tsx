@@ -61,9 +61,9 @@ export function CatalogExplorer({
     () => applyCatalogFilters(programs, filters),
     [programs, filters],
   );
-  const hasFilters = Boolean(
-    filters.query || filters.typeSlugs.length || filters.fieldSlugs.length,
-  );
+  const activeFilterCount =
+    filters.typeSlugs.length + filters.fieldSlugs.length;
+  const hasFilters = Boolean(filters.query || activeFilterCount);
 
   function syncUrl(next: CatalogFilters) {
     const href = `${pathname}${catalogQueryString(next)}`;
@@ -103,123 +103,164 @@ export function CatalogExplorer({
       : [...values, slug];
   }
 
+  const filterHandlers = {
+    onToggleType: (slug: string) =>
+      applyFilters(
+        (current) => ({
+          ...current,
+          typeSlugs: toggleValue(current.typeSlugs, slug),
+        }),
+        "now",
+      ),
+    onToggleField: (slug: string) =>
+      applyFilters(
+        (current) => ({
+          ...current,
+          fieldSlugs: toggleValue(current.fieldSlugs, slug),
+        }),
+        "now",
+      ),
+  };
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[16.5rem_minmax(0,1fr)]">
-      <aside>
-        <details className="rounded-2xl border border-[#ddd6cb] bg-white p-4 lg:hidden">
-          <summary className="cursor-pointer font-medium text-[#14263d]">
-            Filtros
-          </summary>
-          <div className="mt-4">
-            <FilterFields
-              academicTypes={academicTypes}
-              knowledgeFields={knowledgeFields}
-              typeSlugs={filters.typeSlugs}
-              fieldSlugs={filters.fieldSlugs}
-              onToggleType={(slug) =>
-                applyFilters(
-                  (current) => ({
-                    ...current,
-                    typeSlugs: toggleValue(current.typeSlugs, slug),
-                  }),
-                  "now",
-                )
-              }
-              onToggleField={(slug) =>
-                applyFilters(
-                  (current) => ({
-                    ...current,
-                    fieldSlugs: toggleValue(current.fieldSlugs, slug),
-                  }),
-                  "now",
-                )
-              }
-            />
-          </div>
-        </details>
-        <div className="hidden lg:block">
-          <FilterFields
-            academicTypes={academicTypes}
-            knowledgeFields={knowledgeFields}
-            typeSlugs={filters.typeSlugs}
-            fieldSlugs={filters.fieldSlugs}
-            onToggleType={(slug) =>
-              applyFilters(
-                (current) => ({
-                  ...current,
-                  typeSlugs: toggleValue(current.typeSlugs, slug),
-                }),
-                "now",
-              )
-            }
-            onToggleField={(slug) =>
-              applyFilters(
-                (current) => ({
-                  ...current,
-                  fieldSlugs: toggleValue(current.fieldSlugs, slug),
-                }),
-                "now",
-              )
-            }
+    <div>
+      <div className="rounded-2xl border border-line bg-card p-4 shadow-[0_1px_2px_rgba(20,38,61,0.04)] md:p-5">
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-navy">
+            Buscar programas
+          </span>
+          <input
+            type="search"
+            name="q"
+            value={filters.query}
+            onChange={(event) => {
+              const query = event.target.value;
+              applyFilters((current) => ({ ...current, query }), "debounce");
+            }}
+            placeholder="Riesgos, dirección, inteligencia artificial…"
+            className="w-full min-w-0 rounded-xl border border-line bg-paper px-4 py-3.5 text-base text-navy placeholder:text-muted/80"
           />
-        </div>
-      </aside>
-      <div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <label className="block min-w-0 flex-1">
-            <span className="mb-1 block text-sm font-medium text-[#14263d]">
-              Buscar programas
-            </span>
-            <input
-              type="search"
-              name="q"
-              value={filters.query}
-              onChange={(event) => {
-                const query = event.target.value;
-                applyFilters((current) => ({ ...current, query }), "debounce");
-              }}
-              placeholder="Ej. riesgos, dirección, inteligencia artificial"
-              className="w-full rounded-xl border border-[#ddd6cb] bg-white px-3 py-2.5 text-[#14263d]"
-            />
-          </label>
-          <p className="text-sm text-[#5b6575]">
-            {visiblePrograms.length}{" "}
-            {visiblePrograms.length === 1 ? "programa" : "programas"}
-          </p>
-        </div>
-        {hasFilters ? (
-          <p className="mt-3">
-            <button
-              type="button"
-              onClick={() => applyFilters(() => EMPTY_FILTERS, "now")}
-              className="text-sm font-medium text-[#1e3a5f] underline"
-            >
-              Limpiar filtros
-            </button>
-          </p>
-        ) : null}
-        {visiblePrograms.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-[#ddd6cb] bg-white p-8 text-center">
-            <p className="text-lg font-medium text-[#14263d]">
-              No encontramos programas con estos filtros.
-            </p>
-            <button
-              type="button"
-              onClick={() => applyFilters(() => EMPTY_FILTERS, "now")}
-              className="mt-4 rounded-full bg-[#14263d] px-4 py-2 text-sm text-white"
-            >
-              Limpiar filtros
-            </button>
+        </label>
+      </div>
+
+      <div className="mt-6 grid gap-8 lg:grid-cols-[15.5rem_minmax(0,1fr)] xl:grid-cols-[16.5rem_minmax(0,1fr)]">
+        <aside>
+          <details className="rounded-2xl border border-line bg-card p-4 lg:hidden">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-medium text-navy [&::-webkit-details-marker]:hidden">
+              <span>Filtros</span>
+              {activeFilterCount > 0 ? (
+                <span className="rounded-full bg-navy px-2 py-0.5 text-xs font-medium text-white">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </summary>
+            <div className="mt-4">
+              <FilterFields
+                academicTypes={academicTypes}
+                knowledgeFields={knowledgeFields}
+                typeSlugs={filters.typeSlugs}
+                fieldSlugs={filters.fieldSlugs}
+                {...filterHandlers}
+              />
+            </div>
+          </details>
+          <div className="hidden lg:block">
+            <div className="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto pr-1">
+              <FilterFields
+                academicTypes={academicTypes}
+                knowledgeFields={knowledgeFields}
+                typeSlugs={filters.typeSlugs}
+                fieldSlugs={filters.fieldSlugs}
+                {...filterHandlers}
+              />
+            </div>
           </div>
-        ) : (
-          <ul className="mt-6 grid gap-5 sm:grid-cols-2">
-            {visiblePrograms.map((program) => (
-              <li key={program.slug}>
-                <ProgramCard program={program} />
-              </li>
-            ))}
-          </ul>
-        )}
+        </aside>
+
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted">
+              <span className="font-semibold text-navy">
+                {visiblePrograms.length}
+              </span>{" "}
+              {visiblePrograms.length === 1 ? "programa" : "programas"}
+            </p>
+            {hasFilters ? (
+              <button
+                type="button"
+                onClick={() => applyFilters(() => EMPTY_FILTERS, "now")}
+                className="min-h-11 text-sm font-medium text-navy-soft hover:underline"
+              >
+                Limpiar filtros
+              </button>
+            ) : null}
+          </div>
+          {activeFilterCount > 0 ? (
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {filters.typeSlugs.map((slug) => {
+                const type = academicTypes.find((item) => item.slug === slug);
+                if (!type) {
+                  return null;
+                }
+                return (
+                  <li key={`type-${slug}`}>
+                    <button
+                      type="button"
+                      onClick={() => filterHandlers.onToggleType(slug)}
+                      className="rounded-full bg-card px-3 py-1.5 text-xs text-navy hover:bg-paper"
+                    >
+                      {type.name}
+                      <span className="ml-1 text-muted">×</span>
+                    </button>
+                  </li>
+                );
+              })}
+              {filters.fieldSlugs.map((slug) => {
+                const field = knowledgeFields.find((item) => item.slug === slug);
+                if (!field) {
+                  return null;
+                }
+                return (
+                  <li key={`field-${slug}`}>
+                    <button
+                      type="button"
+                      onClick={() => filterHandlers.onToggleField(slug)}
+                      className="rounded-full bg-card px-3 py-1.5 text-xs text-navy hover:bg-paper"
+                    >
+                      {field.name}
+                      <span className="ml-1 text-muted">×</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+          {visiblePrograms.length === 0 ? (
+            <div className="mt-8 rounded-2xl bg-card px-6 py-14 text-center">
+              <p className="text-lg font-medium text-navy">
+                No encontramos programas con estos filtros.
+              </p>
+              <p className="mt-2 text-sm text-muted">
+                Pruebe otra búsqueda o quite alguno de los filtros activos.
+              </p>
+              <button
+                type="button"
+                onClick={() => applyFilters(() => EMPTY_FILTERS, "now")}
+                className="mt-5 min-h-11 rounded-full bg-navy px-5 text-sm font-medium text-white"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          ) : (
+            <ul className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {visiblePrograms.map((program) => (
+                <li key={program.slug} className="min-w-0">
+                  <ProgramCard program={program} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -241,20 +282,26 @@ function FilterFields({
   onToggleField: (slug: string) => void;
 }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <fieldset>
-        <legend className="text-sm font-semibold text-[#14263d]">
-          ¿Qué tipo de programa quiero estudiar?
+        <legend className="text-sm font-semibold text-navy">
+          Tipo de programa
+          {typeSlugs.length > 0 ? (
+            <span className="ml-1 font-normal text-muted">
+              ({typeSlugs.length})
+            </span>
+          ) : null}
         </legend>
-        <ul className="mt-3 space-y-2">
+        <p className="mt-1 text-xs text-muted">¿Qué tipo quiere estudiar?</p>
+        <ul className="mt-3 space-y-0.5">
           {academicTypes.map((type) => (
             <li key={type.slug}>
-              <label className="flex cursor-pointer items-start gap-2 text-sm">
+              <label className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg px-2 text-sm hover:bg-card">
                 <input
                   type="checkbox"
                   checked={typeSlugs.includes(type.slug)}
                   onChange={() => onToggleType(type.slug)}
-                  className="mt-0.5"
+                  className="size-4 shrink-0 accent-navy"
                 />
                 <span>{type.name}</span>
               </label>
@@ -263,18 +310,24 @@ function FilterFields({
         </ul>
       </fieldset>
       <fieldset>
-        <legend className="text-sm font-semibold text-[#14263d]">
-          ¿Sobre qué quiero estudiar?
+        <legend className="text-sm font-semibold text-navy">
+          Campo de conocimiento
+          {fieldSlugs.length > 0 ? (
+            <span className="ml-1 font-normal text-muted">
+              ({fieldSlugs.length})
+            </span>
+          ) : null}
         </legend>
-        <ul className="mt-3 space-y-2">
+        <p className="mt-1 text-xs text-muted">¿Sobre qué quiere estudiar?</p>
+        <ul className="mt-3 space-y-0.5">
           {knowledgeFields.map((field) => (
             <li key={field.slug}>
-              <label className="flex cursor-pointer items-start gap-2 text-sm">
+              <label className="flex min-h-11 cursor-pointer items-start gap-2.5 rounded-lg px-2 py-2 text-sm hover:bg-card">
                 <input
                   type="checkbox"
                   checked={fieldSlugs.includes(field.slug)}
                   onChange={() => onToggleField(field.slug)}
-                  className="mt-0.5"
+                  className="mt-0.5 size-4 shrink-0 accent-navy"
                 />
                 <span>{field.name}</span>
               </label>

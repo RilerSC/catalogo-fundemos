@@ -20,7 +20,7 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 **Estado:** PUBLIC CATALOG PREVIEW  
 **Fecha de referencia:** 2026-09-18
 
-El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. Los precios con varios conceptos se muestran por separado. Búsqueda y filtros se aplican en memoria sobre el dataset ya cargado; la URL se sincroniza sin round-trip a Neon. Los registros siguen en `draft`; la regla productiva de publicación no se debilitó. CMS, leads e integraciones no están construidos.
+El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. Hay una primera iteración visual/UX. Los precios con varios conceptos se muestran por separado. Búsqueda y filtros se aplican en memoria; la URL se sincroniza sin round-trip a Neon. Los registros siguen en `draft`. CMS, leads e integraciones no están construidos.
 
 ---
 
@@ -443,7 +443,14 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - tras la carga inicial, un cambio de filtro no consulta Neon
 - lint, typecheck y build: PASS
 
-**Producto:** CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
+**Primera iteración visual/UX:** COMPLETE (PUBLIC-002)
+
+- catálogo y ficha con jerarquía más clara; buscador prominente; filtros desktop sticky y mobile con contador
+- cards: título dominante, descripción con line-clamp, metadata etiquetada, precios por componente, campos secundarios
+- grid 1 / 2 / 3 columnas; empty state intencional
+- filtrado local de PUBLIC-001B y pricing de PUBLIC-001A preservados
+- sin imágenes, sin branding inventado, sin cambios DB
+- lint, typecheck y build: PASS
 
 No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
 
@@ -451,7 +458,7 @@ No se deben confundir el esquema persistente con funcionalidades de negocio ya i
 
 ## 15. Próximo objetivo
 
-PUBLIC-001B dejó búsqueda y filtros inmediatos en el cliente. El próximo objetivo es una iteración visual/UX del catálogo (PUBLIC-002), o publicar editorialmente programas y aperturas. No completar CMS, leads e integraciones en el mismo ciclo.
+PUBLIC-002 dejó una primera iteración visual del catálogo. El próximo objetivo puede ser incorporar branding/assets oficiales, imágenes cuando existan, o publicar editorialmente programas y aperturas. No completar CMS, leads e integraciones en el mismo ciclo.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -532,7 +539,7 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-Iterar el diseño visual/UX del catálogo (PUBLIC-002), o publicar editorialmente programas y aperturas para un entorno productivo. CMS, “Mis programas de interés” y leads siguen pendientes.
+Incorporar branding/assets oficiales o imágenes de programas cuando existan, o publicar editorialmente programas y aperturas. CMS, “Mis programas de interés” y leads siguen pendientes.
 
 No ejecutar ese paso en esta iteración. Tampoco ingerir automáticamente los 7 programas `CSV_ONLY` detectados en `inicios.csv`.
 
@@ -563,6 +570,7 @@ PROGRAM DETAIL                    COMPLETE
 PRICE COMPONENTS                  COMPLETE
 HOME IS CATALOG                   COMPLETE
 FILTER LATENCY                    COMPLETE
+VISUAL / UX ITERATION             COMPLETE
 CMS                               PENDING
 MEDIA                             PENDING
 LEADS                             PENDING
@@ -573,4 +581,4 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** `/` es el catálogo preview completo con 32 programas reales; precios desglosados; filtros locales inmediatos; Programs/Offerings siguen en `draft`; CMS y leads no implementados.
+**Estado operativo:** `/` es el catálogo preview con primera iteración visual; 32 programas reales; precios desglosados; filtros locales inmediatos; Programs/Offerings en `draft`; CMS y leads no implementados.

@@ -1,71 +1,96 @@
 import Link from "next/link";
+import { PriceList } from "@/components/catalog/PriceList";
 import type { CatalogProgramDetail } from "@/lib/catalog/types";
 
 export function ProgramDetail({ program }: { program: CatalogProgramDetail }) {
   const opening = program.opening;
+  const prices = opening?.priceComponents ?? [];
+  const hasSummary = Boolean(
+    opening || program.duration || prices.length > 0,
+  );
 
   return (
     <article className="mx-auto max-w-3xl">
       <p className="text-sm">
-        <Link href="/" className="font-medium text-[#1e3a5f]">
+        <Link href="/" className="text-muted hover:text-navy hover:underline">
           ← Volver al catálogo
         </Link>
       </p>
-      <p className="mt-6 text-xs font-semibold tracking-[0.14em] text-[#8b6b2e] uppercase">
+      <p className="mt-8 text-[0.7rem] font-semibold tracking-[0.16em] text-accent uppercase">
         {program.academicType.name}
       </p>
-      <h1 className="mt-2 text-3xl leading-tight font-semibold text-[#14263d] md:text-4xl">
+      <h1 className="mt-2 text-3xl leading-tight font-semibold tracking-tight break-words text-navy md:text-[2.35rem]">
         {program.name}
       </h1>
-      {opening ? (
-        <dl className="mt-6 grid gap-2 rounded-2xl border border-[#ddd6cb] bg-white p-5 text-sm md:grid-cols-2">
-          <div>
-            <dt className="text-[#5b6575]">Inicio</dt>
-            <dd className="font-medium">{opening.startDateLabel}</dd>
-          </div>
-          {opening.modality ? (
-            <div>
-              <dt className="text-[#5b6575]">Modalidad</dt>
-              <dd className="font-medium">{opening.modality}</dd>
-            </div>
-          ) : null}
-          {opening.schedule ? (
-            <div>
-              <dt className="text-[#5b6575]">Horario</dt>
-              <dd className="font-medium">{opening.schedule}</dd>
-            </div>
-          ) : null}
-          {program.duration ? (
-            <div>
-              <dt className="text-[#5b6575]">Duración</dt>
-              <dd className="font-medium">{program.duration}</dd>
-            </div>
-          ) : null}
-          {opening.priceComponents.map((component) => (
-            <div key={component.kind}>
-              <dt className="text-[#5b6575]">{component.label}</dt>
-              <dd className="font-medium">{component.formatted}</dd>
-            </div>
-          ))}
-        </dl>
+      {program.description ? (
+        <p className="mt-5 max-w-prose text-[1.02rem] leading-relaxed text-ink whitespace-pre-wrap">
+          {program.description}
+        </p>
       ) : null}
       {program.knowledgeFields.length > 0 ? (
-        <ul className="mt-4 flex flex-wrap gap-2">
+        <ul className="mt-5 flex flex-wrap gap-2">
           {program.knowledgeFields.map((field) => (
             <li
               key={field.slug}
-              className="rounded-full bg-white px-3 py-1 text-xs text-[#1e3a5f]"
+              className="rounded-full bg-card px-3 py-1 text-xs text-navy-soft"
             >
               {field.name}
             </li>
           ))}
         </ul>
       ) : null}
-      <TextSection title="Descripción" value={program.description} />
+      {hasSummary ? (
+        <section className="mt-8 rounded-2xl border border-line bg-card p-5 md:p-6">
+          <h2 className="text-sm font-semibold tracking-wide text-navy uppercase">
+            Apertura
+          </h2>
+          {opening || program.duration ? (
+            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+              {opening ? (
+                <div>
+                  <dt className="text-muted">Inicio</dt>
+                  <dd className="mt-0.5 font-medium text-navy">
+                    {opening.startDateLabel}
+                  </dd>
+                </div>
+              ) : null}
+              {opening?.modality ? (
+                <div>
+                  <dt className="text-muted">Modalidad</dt>
+                  <dd className="mt-0.5 font-medium text-navy">
+                    {opening.modality}
+                  </dd>
+                </div>
+              ) : null}
+              {opening?.schedule ? (
+                <div>
+                  <dt className="text-muted">Horario</dt>
+                  <dd className="mt-0.5 font-medium text-navy">
+                    {opening.schedule}
+                  </dd>
+                </div>
+              ) : null}
+              {program.duration ? (
+                <div>
+                  <dt className="text-muted">Duración</dt>
+                  <dd className="mt-0.5 font-medium text-navy">
+                    {program.duration}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : null}
+          {prices.length > 0 ? (
+            <div className="mt-5 border-t border-line pt-4">
+              <PriceList components={prices} layout="rows" />
+            </div>
+          ) : null}
+        </section>
+      ) : null}
       <TextSection title="Perfil de ingreso" value={program.entryProfile} />
       <TextSection title="Perfil de salida" value={program.exitProfile} />
       <TextSection title="Requisitos" value={program.requirements} />
-      <TextSection title="Plan de estudios" value={program.curriculum} />
+      <CurriculumSection value={program.curriculum} />
       <TextSection
         title="Información complementaria"
         value={program.complementaryInfo}
@@ -79,11 +104,29 @@ function TextSection({ title, value }: { title: string; value: string | null }) 
     return null;
   }
   return (
-    <section className="mt-10">
-      <h2 className="text-xl font-semibold text-[#14263d]">{title}</h2>
-      <p className="mt-3 whitespace-pre-wrap text-[0.95rem] leading-relaxed text-[#243044]">
+    <section className="mt-10 max-w-prose">
+      <h2 className="border-b border-line pb-2 text-lg font-semibold text-navy">
+        {title}
+      </h2>
+      <p className="mt-4 whitespace-pre-wrap text-[0.95rem] leading-7 text-ink">
         {value}
       </p>
+    </section>
+  );
+}
+
+function CurriculumSection({ value }: { value: string | null }) {
+  if (!value?.trim()) {
+    return null;
+  }
+  return (
+    <section className="mt-10 max-w-prose">
+      <h2 className="border-b border-line pb-2 text-lg font-semibold text-navy">
+        Plan de estudios
+      </h2>
+      <div className="mt-4 whitespace-pre-wrap text-[0.95rem] leading-7 text-ink">
+        {value}
+      </div>
     </section>
   );
 }

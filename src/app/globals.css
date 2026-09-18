@@ -5,10 +5,21 @@
   --navy-soft: #1e3a5f;
   --ink: #243044;
   --muted: #5b6575;
-  --paper: #f6f3ee;
+  --paper: #f4f1eb;
   --card: #ffffff;
-  --line: #ddd6cb;
+  --line: #e2dcd3;
   --accent: #8b6b2e;
+}
+
+@theme inline {
+  --color-navy: var(--navy);
+  --color-navy-soft: var(--navy-soft);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
 }
 
 html {
