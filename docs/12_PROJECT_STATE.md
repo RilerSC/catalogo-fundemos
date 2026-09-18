@@ -16,13 +16,13 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 
 ## 2. Estado general
 
-**Fase:** Inicialización completada / listo para implementación  
-**Estado:** READY FOR IMPLEMENTATION  
+**Fase:** Esquema persistente inicial definido / listo para datos y catálogo  
+**Estado:** DATA SCHEMA COMPLETE  
 **Fecha de referencia:** 2026-09-17
 
-El discovery inicial del producto y la definición de arquitectura están suficientemente cerrados para comenzar la construcción.
+El discovery, la arquitectura, el scaffold Next.js y el esquema físico inicial de PostgreSQL/Drizzle están cerrados.
 
-No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen el inicio de la implementación.
+No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen la siguiente iteración. El catálogo, CMS, leads e integraciones aún no están construidos. No hay conexión a Neon ni programas ingeridos.
 
 ---
 
@@ -30,14 +30,20 @@ No existen actualmente decisiones funcionales o arquitectónicas fundamentales q
 
 ### Completada
 
-- `10_PROJECT_BRIEF.md` — definición funcional y alcance del producto.
-- `11_ARCHITECTURE.md` — arquitectura técnica inicial.
+- `docs/10_PROJECT_BRIEF.md` — definición funcional y alcance del producto.
+- `docs/11_ARCHITECTURE.md` — arquitectura técnica inicial.
 
 ### Documento actual
 
-- `12_PROJECT_STATE.md` — estado operativo vigente.
+- `docs/12_PROJECT_STATE.md` — estado operativo vigente.
 
-No se requiere crear ADR, backlog, roadmap, runbooks u otra documentación adicional antes de iniciar la implementación.
+### Material fuente
+
+- `docs/source/categorias-programas.md`
+- `docs/source/HOJA DE VENTAS/` (23 programas de educación continua)
+- `docs/source/HV2/` (9 programas de grado y posgrado)
+
+No se requiere crear ADR, backlog, roadmap, runbooks u otra documentación adicional antes de continuar la implementación.
 
 ---
 
@@ -311,55 +317,57 @@ Investigaciones adicionales deberán ser específicas y responder a una decisió
 
 ## 13. Estado del repositorio
 
-**PENDING / POR VERIFICAR AL INICIAR EJECUCIÓN**
+**COMPLETE — inspeccionado en BOOTSTRAP-001**
 
-Antes de implementar deberá verificarse el estado real del repositorio Git que alojará el proyecto, incluyendo:
+Repositorio Git real:
 
-- estructura existente;
-- rama de trabajo;
-- archivos presentes;
-- configuración previa;
-- estado de Git;
-- existencia o ausencia de una aplicación inicial.
+- remoto: `https://github.com/RilerSC/catalogo-fundemos.git`
+- rama de trabajo: `docs`
+- historial preservado
+- no existía aplicación Next.js, `package.json`, TypeScript, Tailwind ni Drizzle antes del bootstrap
+- no se encontró trabajo de aplicación que debiera preservarse por encima del material documental y fuente
 
-Este documento no presume que el scaffold técnico ya exista.
-
-Git será la fuente maestra de los documentos y código del proyecto una vez incorporados al repositorio.
+La raíz del repositorio es ahora la raíz de la aplicación Next.js.
 
 ---
 
 ## 14. Estado de implementación
 
-A la fecha de este documento:
+**Scaffold técnico:** COMPLETE (BOOTSTRAP-001)
 
-**No se considera iniciada la implementación técnica del producto.**
+Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScript, Tailwind CSS, ESLint y `src/`.
 
-La arquitectura está definida, pero todavía deberá ejecutarse el bootstrap técnico de la aplicación y establecer el esquema inicial.
+**Esquema de datos:** COMPLETE (DATA-001)
 
-No se deben confundir decisiones arquitectónicas aprobadas con funcionalidades ya implementadas.
+- dependencias: `drizzle-orm` 0.45.2, `@neondatabase/serverless` 1.1.0, `drizzle-kit` 0.31.10, `dotenv` 18.0.0
+- archivos: `drizzle.config.ts`, `src/db/schema.ts`, `src/db/index.ts` (cliente lazy)
+- migración: `drizzle/0000_sweet_mathemanic.sql`
+- variable documentada: `DATABASE_URL` en `.env.example`
+- precio de apertura: `numeric(12,2)` obligatorio + `price_currency` texto mínimo
+- no hay seeds ni `taxonomy.ts`
+- no se inventó `DATABASE_URL`, no se conectó a Neon y no se ejecutó `db:migrate`
+
+**Producto:** el catálogo público, CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
+
+No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
 
 ---
 
 ## 15. Próximo objetivo
 
-El próximo objetivo es iniciar la implementación de forma incremental y proporcional.
+DATA-001 ya dejó el modelo persistente y sus relaciones.
 
-La primera ejecución deberá:
+El próximo objetivo es una iteración funcional focal: aplicar la migración contra Neon cuando exista `DATABASE_URL`, cargar la taxonomía inicial, o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
 
-1. inspeccionar el repositorio real;
-2. confirmar que no existe trabajo previo que deba preservarse;
-3. establecer el scaffold mínimo de Next.js compatible con la arquitectura aprobada;
-4. configurar la base técnica necesaria para continuar;
-5. evitar implementar anticipadamente todo el producto en una sola iteración;
-6. validar que el proyecto base construye correctamente.
-
-La ejecución deberá respetar `10_PROJECT_BRIEF.md`, `11_ARCHITECTURE.md` y las políticas universales del proyecto.
+La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
 ---
 
-## 16. Criterio para la primera iteración
+## 16. Criterio para las siguientes iteraciones
 
-La primera iteración no deberá intentar completar simultáneamente:
+BOOTSTRAP-001 ya obtuvo la base técnica limpia y validada.
+
+Las siguientes iteraciones no deberán intentar completar simultáneamente:
 
 - catálogo;
 - CMS;
@@ -371,9 +379,7 @@ La primera iteración no deberá intentar completar simultáneamente:
 - medios;
 - todas las entidades y flujos.
 
-El objetivo inicial será obtener una base técnica limpia, verificable y compatible con la arquitectura.
-
-Las capacidades funcionales deberán incorporarse después mediante iteraciones focales.
+Las capacidades funcionales deberán incorporarse mediante iteraciones focales.
 
 ---
 
@@ -432,11 +438,9 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-**Preparar la primera instrucción de ejecución para Cursor.**
+Provisionar Neon, configurar `DATABASE_URL` en `.env.local` (sin versionarlo) y aplicar `drizzle/0000_sweet_mathemanic.sql` de forma controlada. Después, insertar únicamente la taxonomía inicial (`AcademicType` y `KnowledgeField`) sin ingerir los 32 programas.
 
-Esa instrucción deberá comenzar por inspeccionar el repositorio y realizar únicamente el bootstrap técnico mínimo necesario para dejar la aplicación base operativa y validada.
-
-No deberá asumir archivos, estructura o configuración que no hayan sido verificados en Git.
+No ejecutar ese paso en esta iteración.
 
 ---
 
@@ -449,9 +453,10 @@ ARCHITECTURE                      COMPLETE
 PROJECT STATE                     COMPLETE
 GENERAL RESEARCH                  COMPLETE
 
-REPOSITORY INSPECTION             PENDING
-TECHNICAL SCAFFOLD                PENDING
-DATABASE SCHEMA                   PENDING
+REPOSITORY INSPECTION             COMPLETE
+TECHNICAL SCAFFOLD                COMPLETE
+DRIZZLE / NEON PREP               COMPLETE
+DATABASE SCHEMA                   COMPLETE (SQL generado; no aplicado a Neon)
 PUBLIC CATALOG                    PENDING
 SEARCH / FILTERS                  PENDING
 PROGRAM DETAIL                    PENDING
@@ -465,4 +470,4 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** listo para iniciar ejecución.
+**Estado operativo:** esquema físico inicial definido y validado en código; listo para conectar Neon o iniciar el catálogo público.
