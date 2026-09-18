@@ -16,13 +16,13 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 
 ## 2. Estado general
 
-**Fase:** Base Neon conectada / esquema físico aplicado  
-**Estado:** DATABASE CONNECTED  
+**Fase:** Taxonomía académica inicial cargada  
+**Estado:** TAXONOMY SEEDED  
 **Fecha de referencia:** 2026-09-17
 
-El discovery, la arquitectura, el scaffold Next.js, el esquema físico inicial y la conexión a Neon están cerrados. La migración versionada de DATA-001 está aplicada en PostgreSQL real.
+El discovery, la arquitectura, el scaffold Next.js, el esquema físico, la conexión a Neon y la taxonomía maestra inicial están cerrados. Existen 11 tipos académicos y 6 campos de conocimiento. Los 32 programas todavía no están ingeridos.
 
-No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen la siguiente iteración. El catálogo, CMS, leads e integraciones aún no están construidos. La base de negocio permanece vacía: no hay taxonomía ni programas ingeridos.
+No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen la siguiente iteración. El catálogo, CMS, leads e integraciones aún no están construidos.
 
 ---
 
@@ -345,7 +345,6 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - migración: `drizzle/0000_sweet_mathemanic.sql`
 - variable documentada: `DATABASE_URL` en `.env.example`
 - precio de apertura: `numeric(12,2)` obligatorio + `price_currency` texto mínimo
-- no hay seeds ni `taxonomy.ts`
 
 **Neon / migración aplicada:** COMPLETE (DATA-002)
 
@@ -355,8 +354,16 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - `DATABASE_URL` configurada solo en `.env.local` (ignorado por Git)
 - migración aplicada con `npm run db:migrate` / `drizzle-kit migrate` (no `drizzle push`)
 - Drizzle registró `0000_sweet_mathemanic` en `drizzle.__drizzle_migrations`
-- las nueve tablas de negocio existen en `public` y están vacías (0 registros)
 - no hay tabla de usuarios administrativos en `public`; Neon Auth de consola existe en el esquema `neon_auth` y no es usado por la aplicación
+
+**Taxonomía inicial:** COMPLETE (DATA-003)
+
+- seed versionado: `src/db/seed.ts`
+- comando: `npm run db:seed`
+- idempotente por `slug` (`onConflictDoUpdate`)
+- `academic_types`: 11 registros
+- `knowledge_fields`: 6 registros
+- programas, asociaciones, aperturas, medios y leads: 0
 - lint, typecheck y build: PASS
 
 **Producto:** el catálogo público, CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
@@ -367,9 +374,9 @@ No se deben confundir el esquema persistente con funcionalidades de negocio ya i
 
 ## 15. Próximo objetivo
 
-DATA-002 ya dejó Neon conectado y el esquema físico aplicado.
+DATA-003 ya dejó cargada la taxonomía maestra.
 
-El próximo objetivo es una iteración funcional focal: insertar únicamente la taxonomía inicial (`AcademicType` y `KnowledgeField`) o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
+El próximo objetivo es una iteración funcional focal: ingerir los 32 programas (con asociaciones a campos de conocimiento y tipo académico canónico) o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -450,7 +457,7 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-Insertar únicamente la taxonomía inicial (`AcademicType` y `KnowledgeField`) en la base Neon ya migrada, sin ingerir los 32 programas.
+Ingerir los 32 programas iniciales a partir de `docs/source/categorias-programas.md` y las hojas de ventas, mapeando “Maestría profesional” a `Maestría` y “Máster ejecutivo” a `Máster`, sin abrir CMS ni catálogo público en el mismo ciclo.
 
 No ejecutar ese paso en esta iteración.
 
@@ -471,6 +478,7 @@ DRIZZLE / NEON PREP               COMPLETE
 DATABASE SCHEMA                   COMPLETE
 NEON PROVISIONING                 COMPLETE
 INITIAL MIGRATION APPLIED         COMPLETE
+TAXONOMY SEED                     COMPLETE
 PUBLIC CATALOG                    PENDING
 SEARCH / FILTERS                  PENDING
 PROGRAM DETAIL                    PENDING
@@ -484,4 +492,4 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** Neon conectado, migración inicial aplicada y tablas de negocio vacías; listo para taxonomía inicial o catálogo público de solo lectura.
+**Estado operativo:** Neon conectado, migración inicial aplicada y taxonomía maestra cargada (11 tipos, 6 campos); listo para ingestión de programas o catálogo público de solo lectura.
