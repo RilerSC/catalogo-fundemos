@@ -16,11 +16,11 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 
 ## 2. Estado general
 
-**Fase:** Taxonomía académica inicial cargada  
-**Estado:** TAXONOMY SEEDED  
+**Fase:** Programas iniciales ingeridos  
+**Estado:** PROGRAMS INGESTED  
 **Fecha de referencia:** 2026-09-17
 
-El discovery, la arquitectura, el scaffold Next.js, el esquema físico, la conexión a Neon y la taxonomía maestra inicial están cerrados. Existen 11 tipos académicos y 6 campos de conocimiento. Los 32 programas todavía no están ingeridos.
+El discovery, la arquitectura, el scaffold Next.js, el esquema físico, Neon, la taxonomía maestra y los 32 programas iniciales están cerrados. Cada programa tiene tipo académico y campos de conocimiento. No hay aperturas; el catálogo público todavía no está implementado.
 
 No existen actualmente decisiones funcionales o arquitectónicas fundamentales que bloqueen la siguiente iteración. El catálogo, CMS, leads e integraciones aún no están construidos.
 
@@ -366,6 +366,17 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - programas, asociaciones, aperturas, medios y leads: 0
 - lint, typecheck y build: PASS
 
+**Programas iniciales:** COMPLETE (DATA-004)
+
+- dataset versionado: `src/db/data/programs.ts`
+- comando: `npm run db:seed:programs`
+- idempotente por `slug` (`onConflictDoUpdate`) y asociaciones por PK compuesta (`onConflictDoNothing`)
+- `programs`: 32 registros en `draft`
+- `program_knowledge_fields`: 95 asociaciones
+- distribución de tipos: Técnico 8, Diplomado 1, Especialista 10, Misión académica 2, Seminario 1, Programa ejecutivo 1, Bachillerato 2, Licenciatura 1, Maestría 3, Máster 2, Doctorado 1
+- `offerings`, `media_assets` y leads: 0
+- lint, typecheck y build: PASS
+
 **Producto:** el catálogo público, CMS, autenticación, Blob, Salesforce, leads, WhatsApp, SEO completo y GA4 no están implementados.
 
 No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
@@ -374,9 +385,9 @@ No se deben confundir el esquema persistente con funcionalidades de negocio ya i
 
 ## 15. Próximo objetivo
 
-DATA-003 ya dejó cargada la taxonomía maestra.
+DATA-004 ya dejó ingeridos los 32 programas y sus clasificaciones.
 
-El próximo objetivo es una iteración funcional focal: ingerir los 32 programas (con asociaciones a campos de conocimiento y tipo académico canónico) o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
+El próximo objetivo es una iteración funcional focal: crear las aperturas (`Offering`) a partir de los candidatos de precio/fecha/modalidad ya extraídos, o construir el catálogo público de solo lectura. No completar CMS, leads e integraciones en el mismo ciclo.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -457,7 +468,7 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-Ingerir los 32 programas iniciales a partir de `docs/source/categorias-programas.md` y las hojas de ventas, mapeando “Maestría profesional” a `Maestría` y “Máster ejecutivo” a `Máster`, sin abrir CMS ni catálogo público en el mismo ciclo.
+Crear las aperturas iniciales (`Offering`) usando únicamente fechas, precios, modalidad y horarios explícitos en las hojas de venta, sin publicar visibilidad pública automáticamente ni abrir CMS o catálogo en el mismo ciclo.
 
 No ejecutar ese paso en esta iteración.
 
@@ -479,6 +490,7 @@ DATABASE SCHEMA                   COMPLETE
 NEON PROVISIONING                 COMPLETE
 INITIAL MIGRATION APPLIED         COMPLETE
 TAXONOMY SEED                     COMPLETE
+PROGRAM INGESTION                 COMPLETE
 PUBLIC CATALOG                    PENDING
 SEARCH / FILTERS                  PENDING
 PROGRAM DETAIL                    PENDING
@@ -492,4 +504,4 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** Neon conectado, migración inicial aplicada y taxonomía maestra cargada (11 tipos, 6 campos); listo para ingestión de programas o catálogo público de solo lectura.
+**Estado operativo:** 32 programas ingeridos con tipo académico y campos de conocimiento; sin aperturas ni catálogo público.
