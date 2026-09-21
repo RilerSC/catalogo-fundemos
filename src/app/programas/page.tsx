@@ -1,18 +1,30 @@
-import type { Metadata } from "next";
-import { CatalogScreen } from "@/components/catalog/CatalogScreen";
+import { permanentRedirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Catálogo de programas",
-  description:
-    "Filtre y busque la oferta académica de Universidad FUNDEPOS por tipo de programa y campo de conocimiento.",
-};
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default function ProgramasPage({ searchParams }: PageProps) {
-  return <CatalogScreen searchParams={searchParams} />;
+function catalogDestination(
+  searchParams: Record<string, string | string[] | undefined>,
+): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (typeof value === "string" && value.length > 0) {
+      query.append(key, value);
+    } else if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item) {
+          query.append(key, item);
+        }
+      }
+    }
+  }
+  const suffix = query.toString();
+  return suffix ? `/?${suffix}` : "/";
+}
+
+export default async function ProgramasAliasPage({ searchParams }: PageProps) {
+  permanentRedirect(catalogDestination(await searchParams));
 }

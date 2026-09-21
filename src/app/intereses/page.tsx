@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { InterestsView } from "@/components/interests/InterestsView";
 import { getCatalogPrograms } from "@/lib/catalog/queries";
+import { pageRobots } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Mis programas de interés",
-  description:
-    "Consulte los programas de Universidad FUNDEPOS que marcó de interés en este navegador.",
-};
+export function generateMetadata(): Metadata {
+  return {
+    title: "Mis programas de interés",
+    description:
+      "Consulte los programas de Universidad FUNDEPOS que marcó de interés en este navegador.",
+    robots: pageRobots(false),
+  };
+}
 
 export default async function InteresesPage() {
   let programs: Awaited<ReturnType<typeof getCatalogPrograms>> = [];

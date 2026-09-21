@@ -8,6 +8,7 @@ import {
   useInterestActions,
   useInterestIds,
 } from "@/components/interests/useInterests";
+import { LeadRequestForm } from "@/components/leads/LeadRequestForm";
 import type { CatalogProgramCard } from "@/lib/catalog/types";
 
 type InterestsViewProps = {
@@ -106,9 +107,8 @@ export function InterestsView({ programs, loadError }: InterestsViewProps) {
               </button>
             </div>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">
-              Revise las fichas o quite programas de esta lista. La solicitud de
-              información para varios programas a la vez se habilitará más
-              adelante.
+              Revise las fichas, quite programas o solicite información sobre la
+              selección actual.
             </p>
             <ul className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {selected.map((program) => (
@@ -117,6 +117,10 @@ export function InterestsView({ programs, loadError }: InterestsViewProps) {
                 </li>
               ))}
             </ul>
+            <LeadRequestForm
+              programIds={selected.map((program) => program.id)}
+              programCount={selected.length}
+            />
           </>
         )}
       </div>

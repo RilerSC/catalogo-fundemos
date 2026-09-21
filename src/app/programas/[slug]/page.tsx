@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProgramDetail } from "@/components/catalog/ProgramDetail";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { getCatalogPrograms, getProgramBySlug } from "@/lib/catalog/queries";
 import { relatedCatalogPrograms } from "@/lib/catalog/related";
+import { breadcrumbListJsonLd } from "@/lib/seo/jsonLd";
+import {
+  CATALOG_DESCRIPTION,
+  compactMetaDescription,
+  documentTitle,
+  openGraphWebsite,
+  pageRobots,
+  twitterSummary,
+} from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +26,34 @@ export async function generateMetadata({
   const { slug } = await params;
   const program = await getProgramBySlug(slug);
   if (!program) {
-    notFound();
+    return {
+      title: "Página no encontrada",
+      robots: { index: false, follow: false },
+    };
   }
+
+  const titleSource = program.seoTitle?.trim() || program.name;
+  const description =
+    compactMetaDescription(program.seoDescription) ??
+    compactMetaDescription(program.shortDescription) ??
+    CATALOG_DESCRIPTION;
+  const path = `/programas/${program.slug}`;
+  const title = documentTitle(titleSource);
+
   return {
-    title: program.seoTitle || program.name,
-    description: program.seoDescription || program.shortDescription || undefined,
+    title: titleSource,
+    description,
+    alternates: { canonical: path },
+    robots: pageRobots(true),
+    openGraph: openGraphWebsite({
+      title,
+      description,
+      path,
+    }),
+    twitter: twitterSummary({
+      title,
+      description,
+    }),
   };
 }
 
@@ -36,6 +69,12 @@ export default async function ProgramPage({ params }: PageProps) {
 
   return (
     <main className="flex-1">
+      <JsonLd
+        data={breadcrumbListJsonLd({
+          programName: program.name,
+          slug: program.slug,
+        })}
+      />
       <ProgramDetail
         program={program}
         related={relatedCatalogPrograms(program, catalog)}

@@ -1,4 +1,5 @@
 import { asc, eq } from "drizzle-orm";
+import { cache } from "react";
 import { getDb } from "@/db";
 import {
   academicTypes,
@@ -155,9 +156,11 @@ export async function getKnowledgeFields(): Promise<CatalogTaxonomy[]> {
   return rows;
 }
 
-export async function getCatalogPrograms(): Promise<CatalogProgramCard[]> {
+export const getCatalogPrograms = cache(async function getCatalogPrograms(
+  options?: { preview?: boolean },
+): Promise<CatalogProgramCard[]> {
   const db = getDb();
-  const preview = isCatalogPreview();
+  const preview = options?.preview ?? isCatalogPreview();
   const [
     programRows,
     typeRows,
@@ -219,9 +222,9 @@ export async function getCatalogPrograms(): Promise<CatalogProgramCard[]> {
       }
       return left.name.localeCompare(right.name, "es");
     });
-}
+});
 
-export async function getProgramBySlug(
+export const getProgramBySlug = cache(async function getProgramBySlug(
   slug: string,
 ): Promise<CatalogProgramDetail | null> {
   const db = getDb();
@@ -288,4 +291,4 @@ export async function getProgramBySlug(
     seoTitle: program.seoTitle,
     seoDescription: program.seoDescription,
   };
-}
+});

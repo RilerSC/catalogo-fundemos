@@ -17,10 +17,10 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 ## 2. Estado general
 
 **Fase:** Catálogo público preview  
-**Estado:** PUBLIC CATALOG PREVIEW  
-**Fecha de referencia:** 2026-09-20 (PUBLIC-005)
+**Estado:** PUBLIC CATALOG PREVIEW + LEADS-001 + SEO-001  
+**Fecha de referencia:** 2026-09-20 (SEO-001)
 
-El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. La interfaz conserva la identidad visual v1 de PUBLIC-004 y añade la evolución UX de PUBLIC-005: drawer mobile de filtros, explorar por campo, cards más escaneables y fichas con orientación. Los precios con varios conceptos se muestran por separado. Búsqueda y filtros se aplican en memoria; la URL se sincroniza sin round-trip a Neon. El visitante puede marcar programas de interés en el mismo navegador (localStorage), sin cuenta. Los registros siguen en `draft`. CMS, leads e integraciones no están construidos.
+El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. La interfaz conserva la identidad visual v1 de PUBLIC-004 y la evolución UX de PUBLIC-005. El visitante puede marcar programas de interés y solicitar información (LEADS-001). SEO técnico cubre canonical, metadata, robots, sitemap y datos estructurados mínimos. No hay Salesforce, proxy, WhatsApp, email, analytics, Search Console ni CMS. Los registros del catálogo siguen en `draft`.
 
 ---
 
@@ -505,13 +505,49 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - DB, migraciones y seeds sin cambios; 32 programas, 32 aperturas, 59 componentes de precio
 - lint, typecheck y build: PASS
 
+**Captura mínima de interesados:** COMPLETE (LEADS-001)
+
+- formulario solo en `/intereses` y solo con ≥1 programa visible; campos: nombre, correo, teléfono
+- `Me interesa` en catálogo/ficha sigue guardando localmente; la conversión real es `Solicitar información`
+- endpoint `POST /api/leads`; request `{ name, email, phone, programIds }`; éxito `201 { ok: true, leadId }`; validación `400 { ok: false, error, fields? }`; interno `500 { ok: false, error: "internal" }`
+- validación server-side independiente: trim/normalización, límites, UUID, deduplicación, máximo 32 programas, elegibilidad vía `getCatalogPrograms()` (preview vs production)
+- payload mixto (válidos + inválidos) se rechaza completo; no se crean asociaciones parciales
+- persistencia atómica Lead + LeadProgram con `db.batch()` (neon-http no expone `db.transaction()` interactivo); UUID generado en aplicación
+- `contact_channel` es NOT NULL (`email` | `whatsapp`); se persiste `email` porque el formulario recolecta correo y no hay elección de canal ni entrega externa
+- schema existente suficiente; cero migraciones; no se escriben snapshots de programa; no se crea `LeadDelivery`
+- honeypot `website`: si viene poblado responde `201` con UUID ficticio y no inserta; POST + JSON + 8 KB; sin IP, fingerprint, CAPTCHA ni rate limiter externo
+- UI: loading `Enviando…`, errores junto al campo + summary, éxito `Solicitud recibida`; el fallo conserva valores; el submit usa los IDs actuales
+- tras éxito: sessionStorage `fundepos.catalog.leadRequest.v1` oculta el formulario para la misma selección; localStorage de intereses no se borra
+- logs: `console.error("lead-create-failed")` sin PII; la respuesta de éxito no devuelve nombre/email/teléfono
+- no Salesforce, proxy, WhatsApp, email, GA4/GTM/Ads, seeds de leads ni secrets client-side
+- lint, typecheck y build: PASS; prueba real Neon + API + Chrome (375/430/768/1440)
+
+**Fundamentos SEO técnicos:** COMPLETE (SEO-001)
+
+- `/` es el catálogo canónico (`index,follow` en production); `/programas` redirige 308 a `/` conservando query
+- fichas: canonical autorreferente `/programas/{slug}`; title `{nombre|seoTitle} | Universidad FUNDEPOS`; description desde `seoDescription` o resumen real compactado
+- `/intereses`: `noindex,follow`; fuera de sitemap; no se canonicaliza a `/`
+- `type`/`field`: estado UX; canonical `/`; no landings ni sitemap
+- `q` significativo: `noindex,follow` + canonical `/`; la búsqueda sigue funcionando
+- preview/development: `noindex,nofollow` global y `robots.txt` `Disallow: /`
+- `SITE_URL` server-side (no `NEXT_PUBLIC_`); obligatoria si `VERCEL_ENV=production`; documentada en `.env.example`; no se inventó dominio
+- sitemap (`src/app/sitemap.ts`): `/` + fichas públicamente elegibles (`getCatalogPrograms({ preview: false })`); hoy solo `/` porque los 32 programas siguen en `draft`; sin `lastModified`/`priority`; sin `/intereses`, `/api`, filtros ni drafts
+- robots production: `Allow: /` + sitemap absoluto; no bloquea `q`/`type`/`field`
+- JSON-LD: `Organization` (name, url, logo institucional) en `/`; `BreadcrumbList` Catálogo → programa en fichas
+- Course List: evaluado y diferido (rich result de Google documentado en inglés; exige definición de course + ItemList/carrusel; el inventario mezcla tipos que no deben marcarse automáticamente)
+- no Product, Offer, AggregateRating, FAQ, Event, LocalBusiness ni EducationalOccupationalProgram
+- OG/Twitter derivados de la misma metadata; sin imagen OG dedicada (logo horizontal no se forzó como hero); sin cuentas X inventadas
+- 404 real para slug inexistente y para drafts en production; se retiró `loading.tsx` raíz/`programas` porque el streaming devolvía 200
+- LEADS-001 y DB sin cambios de escritura; `/api/leads` fuera de sitemap
+- lint, typecheck y build: PASS; HTML/head, robots y sitemap inspeccionados en preview y con `VERCEL_ENV=production`
+
 No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
 
 ---
 
 ## 15. Próximo objetivo
 
-PUBLIC-005 dejó la exploración académica editorial con decisión asistida sobre la identidad de PUBLIC-004. El próximo objetivo funcional es LEADS-001. SEO-001 y ANALYTICS-001 siguen pendientes como tareas separadas. Imágenes de programa y publicación editorial siguen pendientes.
+SEO-001 dejó el catálogo preparado para rastreo e indexación. Search Console real, imagen OG dedicada y publicación editorial de programas siguen pendientes. La siguiente frontera no está ejecutada: hay que decidir la secuencia entre integración proxy/Salesforce, WhatsApp, ANALYTICS-001 y CMS.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -592,9 +628,15 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-LEADS-001: formulario de contacto a partir de los programas de interés ya seleccionados, persistencia del lead en Neon, sin WhatsApp ni Salesforce en el mismo ciclo.
+Decidir la siguiente frontera, sin ejecutarla en esta iteración:
 
-No ejecutar ese paso en esta iteración. Tampoco ingerir automáticamente los 7 programas `CSV_ONLY` detectados en `inicios.csv`.
+- integración proxy/Salesforce;
+- WhatsApp posterior a persistencia;
+- ANALYTICS-001 (`generate_lead` solo después de persistencia exitosa);
+- CMS;
+- Search Console institucional cuando exista acceso (sin tokens personales).
+
+Tampoco ingerir automáticamente los 7 programas `CSV_ONLY` detectados en `inicios.csv`.
 
 ---
 
@@ -628,16 +670,17 @@ ANONYMOUS INTERESTS               COMPLETE
 BRAND IDENTITY V1                 COMPLETE
 UX / SEO BENCHMARK RESEARCH       COMPLETE
 PUBLIC UX EVOLUTION               COMPLETE
+LEAD CAPTURE (NEON)               COMPLETE
+SEO TECHNICAL FOUNDATIONS         COMPLETE
 CMS                               PENDING
 MEDIA                             PENDING
-LEADS                             PENDING
 PROXY / SALESFORCE                PENDING
 WHATSAPP                          PENDING
-SEO IMPLEMENTATION                PENDING
-GA4 / SEARCH CONSOLE              PENDING
+SEARCH CONSOLE                    PENDING
+GA4 / GTM / ADS                   PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** `/` es el catálogo preview con identidad visual v1 y la evolución UX de PUBLIC-005 (drawer mobile, explorar por campo, cards compactas, ficha orientada); 32 programas reales; precios desglosados; filtros locales; intereses anónimos en localStorage (`/intereses`); Programs/Offerings en `draft`; CMS y leads no implementados.
+**Estado operativo:** `/` es el catálogo canónico preview con identidad PUBLIC-004/005; 32 programas reales en `draft`; leads persistidos en Neon; SEO técnico con canonical, metadata, robots, sitemap y JSON-LD mínimo. En production el sitemap hoy contiene solo `/` hasta publicar programas. CMS e integraciones externas no implementados.
 
 **Limitaciones visuales conocidas:** sin fotografía ni imágenes de programa; los planes de estudio de grado siguen siendo texto plano (la tabla real de código/materia/créditos requiere trabajo de datos, no de UI); los bloques `Módulo I  Módulo VII` vienen con dos columnas colapsadas desde el PDF de origen; no hay compare-lite ni próximos inicios.
