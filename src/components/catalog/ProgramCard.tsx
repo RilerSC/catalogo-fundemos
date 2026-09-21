@@ -1,89 +1,106 @@
 import Link from "next/link";
 import { PriceList } from "@/components/catalog/PriceList";
+import { InterestRemoveButton } from "@/components/interests/InterestRemoveButton";
+import { InterestToggle } from "@/components/interests/InterestToggle";
 import type { CatalogProgramCard } from "@/lib/catalog/types";
-
-const VISIBLE_FIELDS = 2;
 
 export function ProgramCard({
   program,
   headingLevel = 2,
+  interestAction = "toggle",
 }: {
   program: CatalogProgramCard;
   headingLevel?: 2 | 3;
+  interestAction?: "toggle" | "remove" | "none";
 }) {
-  const extraFields = program.knowledgeFields.length - VISIBLE_FIELDS;
-  const visibleFields = program.knowledgeFields.slice(0, VISIBLE_FIELDS);
+  const primaryField = program.knowledgeFields[0];
+  const extraFields = Math.max(0, program.knowledgeFields.length - 1);
   const Heading = headingLevel === 3 ? "h3" : "h2";
   const prices = program.opening?.priceComponents ?? [];
 
   return (
-    <article className="flex h-full min-w-0 flex-col rounded-2xl border border-line bg-card p-5 shadow-[0_1px_2px_rgba(20,38,61,0.04)] transition-[border-color,box-shadow] duration-150 hover:border-navy-soft/25 hover:shadow-[0_10px_28px_rgba(20,38,61,0.06)]">
-      <p className="text-[0.7rem] font-semibold tracking-[0.16em] text-accent uppercase">
-        {program.academicType.name}
-      </p>
-      <Heading className="mt-2 text-lg leading-snug font-semibold tracking-tight break-words text-navy">
-        <Link href={`/programas/${program.slug}`} className="hover:underline">
-          {program.name}
-        </Link>
-      </Heading>
-      {program.shortDescription ? (
-        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
-          {program.shortDescription}
+    <article className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-card transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-navy-soft/30 hover:shadow-[0_16px_40px_rgba(15,30,61,0.10)]">
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-0.5 bg-gold opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+      />
+      <div className="flex flex-1 flex-col p-5">
+        <p className="text-[0.68rem] font-semibold tracking-[0.16em] text-navy-soft uppercase">
+          {program.academicType.name}
         </p>
-      ) : null}
-      <dl className="mt-4 grid gap-1 text-sm text-ink">
-        {program.opening ? (
-          <div className="flex gap-2">
-            <dt className="shrink-0 text-muted">Inicio</dt>
-            <dd>{program.opening.startDateLabel}</dd>
-          </div>
+        <Heading className="mt-2 font-serif text-[1.2rem] leading-snug font-semibold tracking-tight break-words text-balance text-navy">
+          <Link
+            href={`/programas/${program.slug}`}
+            className="hover:underline hover:decoration-gold hover:underline-offset-4"
+          >
+            {program.name}
+          </Link>
+        </Heading>
+        {program.shortDescription ? (
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
+            {program.shortDescription}
+          </p>
         ) : null}
-        {program.opening?.modality ? (
-          <div className="flex gap-2">
-            <dt className="shrink-0 text-muted">Modalidad</dt>
-            <dd>{program.opening.modality}</dd>
-          </div>
-        ) : null}
-        {program.duration ? (
-          <div className="flex gap-2">
-            <dt className="shrink-0 text-muted">Duración</dt>
-            <dd>{program.duration}</dd>
-          </div>
-        ) : null}
-      </dl>
-      {prices.length > 0 ? (
-        <div className="mt-4 border-t border-line pt-3">
-          <PriceList components={prices} />
-        </div>
-      ) : null}
-      {visibleFields.length > 0 ? (
-        <ul className="mt-4 flex flex-wrap gap-1.5">
-          {visibleFields.map((field) => (
-            <li
-              key={field.slug}
-              className="max-w-full truncate rounded-full bg-paper px-2.5 py-0.5 text-[0.7rem] text-navy-soft"
-            >
-              {field.name}
-            </li>
-          ))}
-          {extraFields > 0 ? (
-            <li className="rounded-full bg-paper px-2.5 py-0.5 text-[0.7rem] text-muted">
-              +{extraFields}
-            </li>
+        <dl className="mt-3 grid gap-1 text-sm">
+          {program.opening ? (
+            <MetaRow label="Inicio" value={program.opening.startDateLabel} />
           ) : null}
-        </ul>
-      ) : null}
-      <p className="mt-auto pt-5">
-        <Link
-          href={`/programas/${program.slug}`}
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-navy-soft hover:underline"
-        >
-          Ver programa
-          <span aria-hidden="true" className="ml-1">
-            →
-          </span>
-        </Link>
-      </p>
+          {program.opening?.modality ? (
+            <MetaRow label="Modalidad" value={program.opening.modality} />
+          ) : null}
+          {program.duration ? (
+            <MetaRow label="Duración" value={program.duration} />
+          ) : null}
+        </dl>
+        {prices.length > 0 ? (
+          <div className="mt-3">
+            <PriceList components={prices} layout="compact" />
+          </div>
+        ) : null}
+        {primaryField ? (
+          <p className="mt-3 truncate text-xs text-navy-soft">
+            {primaryField.name}
+            {extraFields > 0 ? (
+              <span className="text-muted"> +{extraFields}</span>
+            ) : null}
+          </p>
+        ) : null}
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-line pt-4">
+          <Link
+            href={`/programas/${program.slug}`}
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-navy hover:underline hover:decoration-gold hover:underline-offset-4"
+          >
+            Ver programa
+            <span
+              aria-hidden="true"
+              className="ml-1.5 transition-transform duration-150 group-hover:translate-x-0.5"
+            >
+              →
+            </span>
+          </Link>
+          {interestAction === "toggle" ? (
+            <InterestToggle
+              programId={program.id}
+              programName={program.name}
+            />
+          ) : null}
+          {interestAction === "remove" ? (
+            <InterestRemoveButton
+              programId={program.id}
+              programName={program.name}
+            />
+          ) : null}
+        </div>
+      </div>
     </article>
+  );
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-2">
+      <dt className="w-[4.5rem] shrink-0 text-muted">{label}</dt>
+      <dd className="min-w-0 font-medium text-ink">{value}</dd>
+    </div>
   );
 }

@@ -18,9 +18,9 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 
 **Fase:** Catálogo público preview  
 **Estado:** PUBLIC CATALOG PREVIEW  
-**Fecha de referencia:** 2026-09-18
+**Fecha de referencia:** 2026-09-20 (PUBLIC-005)
 
-El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. Hay una primera iteración visual/UX. Los precios con varios conceptos se muestran por separado. Búsqueda y filtros se aplican en memoria; la URL se sincroniza sin round-trip a Neon. Los registros siguen en `draft`. CMS, leads e integraciones no están construidos.
+El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. La interfaz conserva la identidad visual v1 de PUBLIC-004 y añade la evolución UX de PUBLIC-005: drawer mobile de filtros, explorar por campo, cards más escaneables y fichas con orientación. Los precios con varios conceptos se muestran por separado. Búsqueda y filtros se aplican en memoria; la URL se sincroniza sin round-trip a Neon. El visitante puede marcar programas de interés en el mismo navegador (localStorage), sin cuenta. Los registros siguen en `draft`. CMS, leads e integraciones no están construidos.
 
 ---
 
@@ -452,13 +452,66 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - sin imágenes, sin branding inventado, sin cambios DB
 - lint, typecheck y build: PASS
 
+**Mis programas de interés:** COMPLETE (PUBLIC-003)
+
+- selección anónima en el mismo navegador/dispositivo; sin cuenta, sesión, cookies ni DB
+- identidad persistida: `program.id` (UUID del read model público)
+- key: `fundepos.catalog.interests`; formato `{ version: 1, programIds: [...] }`
+- toggle `Me interesa` / `En mis intereses` en cards y ficha; no navega ni altera filtros/URL
+- indicador global `Mis programas de interés` con contador solo si hay selección
+- ruta `/intereses`: resuelve IDs contra `getCatalogPrograms()` (respeta preview vs producción); empty state; quitar uno; limpiar todos
+- JSON corrupto, duplicados o storage no disponible fallan a selección vacía o a estado de sesión sin romper la UI
+- IDs inexistentes o no visibles se ignoran; en `/intereses` se podan del storage
+- same-tab vía store en memoria; multi-tab vía evento `storage`
+- DB, Neon, API y pricing sin cambios; filtros de PUBLIC-001B se conservan
+- lint, typecheck y build: PASS
+
+**Identidad visual v1 del catálogo:** COMPLETE (PUBLIC-004)
+
+- activos oficiales del usuario en `branding/`; versiones web derivadas (recorte del margen transparente + reescalado proporcional, sin recolorear) en `public/branding/`: `fundepos-logo.png`, `fundepos-roseta.png`, `fundepos-roseta-blanca.png`
+- colores institucionales aplicados: azul académico `#0F1E3D` (ancla), dorado académico `#D3AF37` (acento), azul institucional `#4A5E7F` (metadata/enlaces), rojo institucional `#930A20` (solo quitar filtro/quitar interés)
+- `#D3AF37` no se usa como texto sobre superficies claras: medido 2,1:1 contra blanco; sobre azul académico rinde 7,8:1
+- tokens en `src/app/globals.css` (`--brand-*`, superficies, líneas, `--gold-ink`, `--gold-veil`) reutilizando los nombres Tailwind ya existentes
+- tipografía UI v1: Source Serif 4 (títulos) + Source Sans 3 (interfaz) vía `next/font`
+- **Tipografía, tokens, radios, sombras y reglas de uso son decisiones de diseño de este catálogo, no un manual de marca oficial de FUNDEPOS** (no existe manual formal suministrado)
+- header con logotipo completo (roseta en mobile), banda editorial azul con buscador montado sobre el borde, filtros en tarjeta con estado seleccionado en velo dorado, chips como controles
+- cards con regla dorada, título serif, metadata etiquetada, bloque de precio en superficie suave y par `Ver programa` / `Me interesa`
+- ficha con apertura azul, panel de apertura (fechas, modalidad, duración, precios y CTA) lateral sticky en escritorio y primero en mobile, secciones con ritmo editorial
+- textos de párrafo recompuestos en presentación (los saltos duros del PDF se unen salvo en bloques con viñetas); el dato no cambia
+- plan de estudios: solo se reconocen encabezados exactos `I…X CUATRIMESTRE` para dar estructura; no se infieren materias, créditos ni requisitos
+- `/intereses` con la misma identidad, estado vacío con roseta y acción `Quitar` por programa
+- corrección de cascada: `a { color: inherit }` movido a `@layer base` porque anulaba las utilidades de color en enlaces
+- contraste verificado en render real: todos los pares medidos cumplen AA (mínimo observado 4,81:1)
+- filtros, búsqueda, URL sync, intereses, visibilidad, pricing y DB sin cambios; 32 programas, 32 aperturas, 59 componentes de precio
+- lint, typecheck y build: PASS
+
+**Benchmark UX/UI + Mobile + SEO + Discoverability:** COMPLETE (RESEARCH-001)
+
+- benchmark disponible en `docs/research/RESEARCH-001_UX_SEO_DISCOVERY.md`; artefacto research/non-canonical
+- sin cambios de código, UI, datos, arquitectura, SEO o analítica
+
+**Evolución UX del catálogo público:** COMPLETE (PUBLIC-005)
+
+- identidad FUNDEPOS, tipografías, pricing, taxonomías, búsqueda, visibilidad e intereses de PUBLIC-004 preservados
+- mobile: `details` inline sustituido por drawer/sheet accesible; la selección es temporal hasta `Ver N programas`; desktop sigue inmediato
+- toolbar de resultados: conteo, chips (incluido `q`) y limpiar, junto al disparador mobile
+- `Explorar por campo`: los 6 campos reales; toggle inmediato sobre `field` y la URL existente
+- cards con progressive disclosure: tipo, título, 2 líneas, inicio/modalidad/duración, precio compacto, un campo +`N`
+- ficha: breadcrumb `Catálogo / nombre`, resumen, quick facts, TOC solo de secciones presentes, CTA sticky mobile, relacionados
+- relacionados: máximo 3; más campos compartidos, luego mismo tipo, luego nombre `es`; solo programas ya visibles
+- feedback de intereses: aviso `aria-live` + enlace a `/intereses` al agregar; persistencia localStorage sin cambios
+- `/intereses` conserva lista, quitar y limpiar; reserva textual del futuro lead sin CTA inactivo
+- no se implementaron próximos inicios, compare-lite, leads, SEO técnico ni analytics
+- DB, migraciones y seeds sin cambios; 32 programas, 32 aperturas, 59 componentes de precio
+- lint, typecheck y build: PASS
+
 No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
 
 ---
 
 ## 15. Próximo objetivo
 
-PUBLIC-002 dejó una primera iteración visual del catálogo. El próximo objetivo puede ser incorporar branding/assets oficiales, imágenes cuando existan, o publicar editorialmente programas y aperturas. No completar CMS, leads e integraciones en el mismo ciclo.
+PUBLIC-005 dejó la exploración académica editorial con decisión asistida sobre la identidad de PUBLIC-004. El próximo objetivo funcional es LEADS-001. SEO-001 y ANALYTICS-001 siguen pendientes como tareas separadas. Imágenes de programa y publicación editorial siguen pendientes.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -539,7 +592,7 @@ La necesidad de nuevos documentos deberá surgir de una necesidad real del proye
 
 ## 20. Próximo paso ejecutable
 
-Incorporar branding/assets oficiales o imágenes de programas cuando existan, o publicar editorialmente programas y aperturas. CMS, “Mis programas de interés” y leads siguen pendientes.
+LEADS-001: formulario de contacto a partir de los programas de interés ya seleccionados, persistencia del lead en Neon, sin WhatsApp ni Salesforce en el mismo ciclo.
 
 No ejecutar ese paso en esta iteración. Tampoco ingerir automáticamente los 7 programas `CSV_ONLY` detectados en `inicios.csv`.
 
@@ -571,6 +624,10 @@ PRICE COMPONENTS                  COMPLETE
 HOME IS CATALOG                   COMPLETE
 FILTER LATENCY                    COMPLETE
 VISUAL / UX ITERATION             COMPLETE
+ANONYMOUS INTERESTS               COMPLETE
+BRAND IDENTITY V1                 COMPLETE
+UX / SEO BENCHMARK RESEARCH       COMPLETE
+PUBLIC UX EVOLUTION               COMPLETE
 CMS                               PENDING
 MEDIA                             PENDING
 LEADS                             PENDING
@@ -581,4 +638,6 @@ GA4 / SEARCH CONSOLE              PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** `/` es el catálogo preview con primera iteración visual; 32 programas reales; precios desglosados; filtros locales inmediatos; Programs/Offerings en `draft`; CMS y leads no implementados.
+**Estado operativo:** `/` es el catálogo preview con identidad visual v1 y la evolución UX de PUBLIC-005 (drawer mobile, explorar por campo, cards compactas, ficha orientada); 32 programas reales; precios desglosados; filtros locales; intereses anónimos en localStorage (`/intereses`); Programs/Offerings en `draft`; CMS y leads no implementados.
+
+**Limitaciones visuales conocidas:** sin fotografía ni imágenes de programa; los planes de estudio de grado siguen siendo texto plano (la tabla real de código/materia/créditos requiere trabajo de datos, no de UI); los bloques `Módulo I  Módulo VII` vienen con dos columnas colapsadas desde el PDF de origen; no hay compare-lite ni próximos inicios.

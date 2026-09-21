@@ -1,29 +1,57 @@
 @import "tailwindcss";
 
+/*
+ * Colores institucionales suministrados por FUNDEPOS para el área académica.
+ * El resto de tokens son decisiones de diseño del catálogo, no manual de marca oficial.
+ */
 :root {
-  --navy: #14263d;
-  --navy-soft: #1e3a5f;
-  --ink: #243044;
-  --muted: #5b6575;
-  --paper: #f4f1eb;
+  --brand-navy: #0f1e3d;
+  --brand-gold: #d3af37;
+  --brand-blue: #4a5e7f;
+  --brand-red: #930a20;
+
+  --navy: var(--brand-navy);
+  --navy-deep: #0a1730;
+  --navy-soft: var(--brand-blue);
+  --gold: var(--brand-gold);
+  /* Dorado apagado, legible sobre superficies claras cuando se necesita texto de acento */
+  --gold-ink: #7a611a;
+  --gold-veil: #f0e7cf;
+
+  --ink: #1f2a3d;
+  --muted: #646c7b;
+  --paper: #f6f4ef;
   --card: #ffffff;
-  --line: #e2dcd3;
-  --accent: #8b6b2e;
+  --card-subtle: #faf8f4;
+  --line: #e3ddd2;
+  --line-strong: #cfc6b6;
+  --accent: var(--brand-blue);
 }
 
 @theme inline {
   --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
   --color-navy-soft: var(--navy-soft);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-gold-veil: var(--gold-veil);
+  --color-brand-red: var(--brand-red);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-paper: var(--paper);
   --color-card: var(--card);
+  --color-card-subtle: var(--card-subtle);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
+
+  --font-sans: var(--font-fundepos-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fundepos-serif), ui-serif, Georgia, serif;
 }
 
 html {
   background: var(--paper);
+  scroll-padding-top: 5.75rem;
 }
 
 body {
@@ -31,19 +59,41 @@ body {
   min-height: 100%;
   background: var(--paper);
   color: var(--ink);
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-a {
-  color: inherit;
+/*
+ * Debe vivir en @layer base: una regla sin capa gana a las utilidades de
+ * Tailwind y dejaría sin efecto clases como text-white en los enlaces.
+ */
+@layer base {
+  a {
+    color: inherit;
+  }
+}
+
+::selection {
+  background: var(--gold-veil);
+  color: var(--navy);
 }
 
 :focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Sobre superficies azul académico el foco necesita el dorado para ser visible */
+.on-navy :focus-visible {
+  outline-color: var(--gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

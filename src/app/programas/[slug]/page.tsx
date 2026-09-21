@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProgramDetail } from "@/components/catalog/ProgramDetail";
-import { getProgramBySlug } from "@/lib/catalog/queries";
+import { getCatalogPrograms, getProgramBySlug } from "@/lib/catalog/queries";
+import { relatedCatalogPrograms } from "@/lib/catalog/related";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +26,20 @@ export async function generateMetadata({
 
 export default async function ProgramPage({ params }: PageProps) {
   const { slug } = await params;
-  const program = await getProgramBySlug(slug);
+  const [program, catalog] = await Promise.all([
+    getProgramBySlug(slug),
+    getCatalogPrograms().catch(() => []),
+  ]);
   if (!program) {
     notFound();
   }
 
   return (
-    <main className="flex-1 px-4 py-8 md:py-10">
-      <ProgramDetail program={program} />
+    <main className="flex-1">
+      <ProgramDetail
+        program={program}
+        related={relatedCatalogPrograms(program, catalog)}
+      />
     </main>
   );
 }
