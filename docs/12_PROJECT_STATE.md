@@ -16,11 +16,11 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 
 ## 2. Estado general
 
-**Fase:** Catálogo público preview  
-**Estado:** PUBLIC CATALOG PREVIEW + LEADS-001 + SEO-001 + ANALYTICS-001  
-**Fecha de referencia:** 2026-09-20 (ANALYTICS-001)
+**Fase:** Catálogo público publicado  
+**Estado:** PUBLIC CATALOG + LEADS-001 + SEO-001 + ANALYTICS-001 + DATA-007  
+**Fecha de referencia:** 2026-09-21 (DATA-007)
 
-El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. La interfaz conserva PUBLIC-004/005. El visitante puede solicitar información (LEADS-001). SEO técnico está implementado. La analítica es un contrato local privacy-first: GTM solo después de consentimiento y solo si existe un ID institucional. No hay Salesforce, proxy, WhatsApp, email, Ads, Search Console ni CMS. Los registros del catálogo siguen en `draft`.
+El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El inventario actual está publicado: Production ya no depende de preview para ver el catálogo. La interfaz conserva PUBLIC-004/005. El visitante puede solicitar información (LEADS-001). SEO técnico está implementado. La analítica es un contrato local privacy-first: GTM solo después de consentimiento y solo si existe un ID institucional. No hay Salesforce, proxy, WhatsApp, email, Ads, Search Console ni CMS. Publicar no valida editorialmente fechas prácticas, precios provisionales ni placeholders HV2.
 
 ---
 
@@ -531,7 +531,7 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - `q` significativo: `noindex,follow` + canonical `/`; la búsqueda sigue funcionando
 - preview/development: `noindex,nofollow` global y `robots.txt` `Disallow: /`
 - `SITE_URL` server-side (no `NEXT_PUBLIC_`); obligatoria si `VERCEL_ENV=production`; documentada en `.env.example`; no se inventó dominio
-- sitemap (`src/app/sitemap.ts`): `/` + fichas públicamente elegibles (`getCatalogPrograms({ preview: false })`); hoy solo `/` porque los 32 programas siguen en `draft`; sin `lastModified`/`priority`; sin `/intereses`, `/api`, filtros ni drafts
+- sitemap (`src/app/sitemap.ts`): `/` + fichas públicamente elegibles (`getCatalogPrograms({ preview: false })`); desde DATA-007 son 33 URLs (`/` + 32 fichas); sin `lastModified`/`priority`; sin `/intereses`, `/api`, filtros ni drafts
 - robots production: `Allow: /` + sitemap absoluto; no bloquea `q`/`type`/`field`
 - JSON-LD: `Organization` (name, url, logo institucional) en `/`; `BreadcrumbList` Catálogo → programa en fichas
 - Course List: evaluado y diferido (rich result de Google documentado en inglés; exige definición de course + ItemList/carrusel; el inventario mezcla tipos que no deben marcarse automáticamente)
@@ -557,13 +557,25 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - Configuración institucional de cuenta GTM/GA4 y key event pendiente; no se inventaron IDs
 - lint, typecheck y build: PASS; Chrome: consentimiento, PII, generate_lead y cero requests Google sin ID
 
+**Publicación del inventario actual:** COMPLETE (DATA-007)
+
+- decisión editorial explícita: publicar el inventario actual aunque parte del contenido siga siendo provisional
+- no se cambió la lógica de visibilidad ni se creó staging; Production sigue siendo `published` + `start_date >= hoy`
+- operación acotada a los 32 Programs y 32 Offerings existentes (todos estaban en `draft`; cero aperturas vencidas)
+- 32 Programs `published`; 32 Offerings `published`; `getCatalogPrograms({ preview: false })` = 32
+- no se modificaron nombres, textos, fechas, precios, taxonomías, componentes de precio ni leads
+- sitemap pasó de `/` a 33 URLs canónicas por elegibilidad real; no se editó `sitemap.ts`
+- el deployment Vercel existente (`force-dynamic`, `no-store`) mostró el catálogo sin redeploy
+- los seeds versionados siguen diciendo `draft`; un re-seed revertiría la publicación
+- CMS continúa pendiente
+
 No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
 
 ---
 
 ## 15. Próximo objetivo
 
-ANALYTICS-001 dejó el contrato y el consentimiento listos. Falta la activación operativa institucional de GTM/GA4. Search Console, imagen OG y publicación editorial siguen pendientes. La siguiente frontera no está ejecutada: hay que decidir la secuencia entre integración proxy/Salesforce, WhatsApp y CMS.
+DATA-007 publicó el inventario actual. ANALYTICS-001 dejó el contrato y el consentimiento listos; falta la activación operativa institucional de GTM/GA4. Search Console, imagen OG y corrección editorial de datos provisionales siguen pendientes. La siguiente frontera no está ejecutada: hay que decidir la secuencia entre integración proxy/Salesforce, WhatsApp y CMS.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -689,6 +701,7 @@ PUBLIC UX EVOLUTION               COMPLETE
 LEAD CAPTURE (NEON)               COMPLETE
 SEO TECHNICAL FOUNDATIONS         COMPLETE
 ANALYTICS CONTRACT + CONSENT      COMPLETE
+CURRENT INVENTORY PUBLISHED       COMPLETE
 GTM / GA4 PROPERTY ACTIVATION     PENDING
 CMS                               PENDING
 MEDIA                             PENDING
@@ -699,6 +712,6 @@ GOOGLE ADS                        PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** `/` es el catálogo canónico preview con identidad PUBLIC-004/005; 32 programas en `draft`; leads en Neon; SEO técnico activo; analítica local con consentimiento básico y dataLayer, sin GTM institucional todavía. CMS e integraciones externas no implementados.
+**Estado operativo:** `/` es el catálogo canónico con identidad PUBLIC-004/005; 32 programas y 32 aperturas publicados y elegibles en Production; leads en Neon; SEO técnico activo (sitemap 33 URLs); analítica local con consentimiento básico y dataLayer, sin GTM institucional todavía. CMS e integraciones externas no implementados. Fechas prácticas, precios provisionales y placeholders HV2 siguen sin validación de fuente.
 
 **Limitaciones visuales conocidas:** sin fotografía ni imágenes de programa; los planes de estudio de grado siguen siendo texto plano (la tabla real de código/materia/créditos requiere trabajo de datos, no de UI); los bloques `Módulo I  Módulo VII` vienen con dos columnas colapsadas desde el PDF de origen; no hay compare-lite ni próximos inicios.
