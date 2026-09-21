@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PrivacyPreferencesButton } from "@/components/analytics/PrivacyPreferencesButton";
 import { InterestsNavLink } from "@/components/interests/InterestsNavLink";
 
 export function SiteHeader() {
@@ -92,6 +93,9 @@ export function SiteFooter() {
               >
                 Mis programas de interés
               </Link>
+            </li>
+            <li>
+              <PrivacyPreferencesButton />
             </li>
           </ul>
         </nav>

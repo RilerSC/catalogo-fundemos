@@ -5,6 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FilterDrawer } from "@/components/catalog/FilterDrawer";
 import { FilterFields } from "@/components/catalog/FilterFields";
 import { ProgramCard } from "@/components/catalog/ProgramCard";
+import { useAnalyticsConsent } from "@/components/analytics/AnalyticsProvider";
+import { sanitizeSearchTerm } from "@/lib/analytics/sanitize";
+import { track } from "@/lib/analytics/track";
 import {
   applyCatalogFilters,
   catalogQueryString,
@@ -39,6 +42,7 @@ export function CatalogExplorer({
   urlFilters,
 }: CatalogExplorerProps) {
   const pathname = usePathname();
+  const { consent } = useAnalyticsConsent();
   const [filters, setFilters] = useState<CatalogFilters>(urlFilters);
   const filtersRef = useRef(urlFilters);
   const urlSyncTimer = useRef<number | null>(null);
@@ -67,6 +71,18 @@ export function CatalogExplorer({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (consent !== "granted") {
+      return;
+    }
+    track({
+      event: "view_item_list",
+      item_list_id: "catalog",
+      item_list_name: "Oferta académica",
+      results_count: applyCatalogFilters(programs, filtersRef.current).length,
+    });
+  }, [consent, programs]);
 
   const visiblePrograms = useMemo(
     () => applyCatalogFilters(programs, filters),
@@ -104,11 +120,45 @@ export function CatalogExplorer({
     window.history.replaceState(null, "", href);
   }
 
+  function emitSearch(next: CatalogFilters) {
+    if (!next.query.trim()) {
+      return;
+    }
+    const searchTerm = sanitizeSearchTerm(next.query);
+    track({
+      event: "search",
+      results_count: applyCatalogFilters(programs, next).length,
+      ...(searchTerm ? { search_term: searchTerm } : {}),
+    });
+  }
+
+  function emitFilterChange(
+    previous: CatalogFilters,
+    next: CatalogFilters,
+  ) {
+    const typesChanged =
+      previous.typeSlugs.join("\0") !== next.typeSlugs.join("\0");
+    const fieldsChanged =
+      previous.fieldSlugs.join("\0") !== next.fieldSlugs.join("\0");
+    if (!typesChanged && !fieldsChanged) {
+      return;
+    }
+    track({
+      event: "filter_programs",
+      type_count: next.typeSlugs.length,
+      field_count: next.fieldSlugs.length,
+      results_count: applyCatalogFilters(programs, next).length,
+      type_slugs: next.typeSlugs,
+      field_slugs: next.fieldSlugs,
+    });
+  }
+
   function applyFilters(
     patch: (current: CatalogFilters) => CatalogFilters,
     url: "now" | "debounce",
   ) {
-    const next = patch(filtersRef.current);
+    const previous = filtersRef.current;
+    const next = patch(previous);
     filtersRef.current = next;
     setFilters(next);
     if (urlSyncTimer.current !== null) {
@@ -118,11 +168,13 @@ export function CatalogExplorer({
     if (url === "debounce") {
       urlSyncTimer.current = window.setTimeout(() => {
         syncUrl(next);
+        emitSearch(next);
         urlSyncTimer.current = null;
       }, SEARCH_URL_SYNC_MS);
       return;
     }
     syncUrl(next);
+    emitFilterChange(previous, next);
   }
 
   function toggleValue(values: string[], slug: string): string[] {

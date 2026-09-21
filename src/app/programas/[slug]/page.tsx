@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ViewItemTracker } from "@/components/analytics/ViewItemTracker";
 import { ProgramDetail } from "@/components/catalog/ProgramDetail";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { toAnalyticsItem } from "@/lib/analytics/types";
 import { getCatalogPrograms, getProgramBySlug } from "@/lib/catalog/queries";
 import { relatedCatalogPrograms } from "@/lib/catalog/related";
 import { breadcrumbListJsonLd } from "@/lib/seo/jsonLd";
@@ -69,6 +71,7 @@ export default async function ProgramPage({ params }: PageProps) {
 
   return (
     <main className="flex-1">
+      <ViewItemTracker item={toAnalyticsItem(program)} />
       <JsonLd
         data={breadcrumbListJsonLd({
           programName: program.name,

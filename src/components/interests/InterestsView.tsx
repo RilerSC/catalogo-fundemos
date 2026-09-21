@@ -8,7 +8,9 @@ import {
   useInterestActions,
   useInterestIds,
 } from "@/components/interests/useInterests";
+import { useAnalyticsConsent } from "@/components/analytics/AnalyticsProvider";
 import { LeadRequestForm } from "@/components/leads/LeadRequestForm";
+import { track } from "@/lib/analytics/track";
 import type { CatalogProgramCard } from "@/lib/catalog/types";
 
 type InterestsViewProps = {
@@ -19,6 +21,7 @@ type InterestsViewProps = {
 export function InterestsView({ programs, loadError }: InterestsViewProps) {
   const ids = useInterestIds();
   const { clear, prune } = useInterestActions();
+  const { consent } = useAnalyticsConsent();
 
   useEffect(() => {
     if (loadError) {
@@ -26,6 +29,16 @@ export function InterestsView({ programs, loadError }: InterestsViewProps) {
     }
     prune(programs.map((program) => program.id));
   }, [loadError, prune, programs]);
+
+  useEffect(() => {
+    if (consent !== "granted") {
+      return;
+    }
+    track({
+      event: "view_interests",
+      interest_count: ids.length,
+    });
+  }, [consent, ids.length]);
 
   const selected = useMemo(() => {
     const byId = new Map(programs.map((program) => [program.id, program]));

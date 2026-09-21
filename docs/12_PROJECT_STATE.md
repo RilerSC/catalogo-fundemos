@@ -17,10 +17,10 @@ No sustituye al Brief ni a la Arquitectura. Su función es responder de forma br
 ## 2. Estado general
 
 **Fase:** Catálogo público preview  
-**Estado:** PUBLIC CATALOG PREVIEW + LEADS-001 + SEO-001  
-**Fecha de referencia:** 2026-09-20 (SEO-001)
+**Estado:** PUBLIC CATALOG PREVIEW + LEADS-001 + SEO-001 + ANALYTICS-001  
+**Fecha de referencia:** 2026-09-20 (ANALYTICS-001)
 
-El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. La interfaz conserva la identidad visual v1 de PUBLIC-004 y la evolución UX de PUBLIC-005. El visitante puede marcar programas de interés y solicitar información (LEADS-001). SEO técnico cubre canonical, metadata, robots, sitemap y datos estructurados mínimos. No hay Salesforce, proxy, WhatsApp, email, analytics, Search Console ni CMS. Los registros del catálogo siguen en `draft`.
+El discovery, el scaffold, Neon, taxonomías, 32 programas, 32 aperturas y el precio opcional están cerrados. El catálogo preview es la entrada de `/`. La interfaz conserva PUBLIC-004/005. El visitante puede solicitar información (LEADS-001). SEO técnico está implementado. La analítica es un contrato local privacy-first: GTM solo después de consentimiento y solo si existe un ID institucional. No hay Salesforce, proxy, WhatsApp, email, Ads, Search Console ni CMS. Los registros del catálogo siguen en `draft`.
 
 ---
 
@@ -541,13 +541,29 @@ Existe una aplicación Next.js ejecutable en la raíz, con App Router, TypeScrip
 - LEADS-001 y DB sin cambios de escritura; `/api/leads` fuera de sitemap
 - lint, typecheck y build: PASS; HTML/head, robots y sitemap inspeccionados en preview y con `VERCEL_ENV=production`
 
+**Contrato de medición + consentimiento:** COMPLETE (ANALYTICS-001) — implementation ready; Google property not activated
+
+- GTM es la única capa de entrega prevista; no hay gtag directo paralelo
+- Basic consent: `analytics` `granted|denied|unset` en `fundepos.consent.v1`; independiente de intereses
+- UI: aviso inicial con `Permitir analítica` / `No permitir` equivalentes; reapertura en footer `Preferencias de privacidad`
+- GTM carga solo si `consent === granted` y `NEXT_PUBLIC_GTM_ID` es un `GTM-…` válido; sin ID no hay requests a Google
+- Ads, `ad_storage`, `ad_user_data` y `ad_personalization` permanecen denied; no Enhanced Conversions
+- Contrato tipado `track()` → `dataLayer`; componentes no hacen push arbitrario
+- Eventos: `page_view`, `view_item_list`, `search`, `filter_programs`, `select_item`, `view_item`, `add_to_wishlist`, `remove_interest`, `view_interests`, `generate_lead`
+- `generate_lead` solo tras HTTP 201; el refresh del success no lo reemite; `Me interesa` no es conversión
+- `search_term` se omite si parece email, teléfono o es demasiado largo; `page_location` elimina `q` y conserva `type`/`field`
+- `page_view` solo por cambio de pathname; filtros y búsqueda no inflan vistas
+- Sin replay de eventos anteriores al consentimiento; debug en development / `NEXT_PUBLIC_ANALYTICS_DEBUG`
+- Configuración institucional de cuenta GTM/GA4 y key event pendiente; no se inventaron IDs
+- lint, typecheck y build: PASS; Chrome: consentimiento, PII, generate_lead y cero requests Google sin ID
+
 No se deben confundir el esquema persistente con funcionalidades de negocio ya implementadas.
 
 ---
 
 ## 15. Próximo objetivo
 
-SEO-001 dejó el catálogo preparado para rastreo e indexación. Search Console real, imagen OG dedicada y publicación editorial de programas siguen pendientes. La siguiente frontera no está ejecutada: hay que decidir la secuencia entre integración proxy/Salesforce, WhatsApp, ANALYTICS-001 y CMS.
+ANALYTICS-001 dejó el contrato y el consentimiento listos. Falta la activación operativa institucional de GTM/GA4. Search Console, imagen OG y publicación editorial siguen pendientes. La siguiente frontera no está ejecutada: hay que decidir la secuencia entre integración proxy/Salesforce, WhatsApp y CMS.
 
 La ejecución deberá respetar `docs/10_PROJECT_BRIEF.md`, `docs/11_ARCHITECTURE.md` y las políticas universales del proyecto.
 
@@ -632,8 +648,8 @@ Decidir la siguiente frontera, sin ejecutarla en esta iteración:
 
 - integración proxy/Salesforce;
 - WhatsApp posterior a persistencia;
-- ANALYTICS-001 (`generate_lead` solo después de persistencia exitosa);
 - CMS;
+- activación institucional de GTM/GA4 (sin cuenta personal);
 - Search Console institucional cuando exista acceso (sin tokens personales).
 
 Tampoco ingerir automáticamente los 7 programas `CSV_ONLY` detectados en `inicios.csv`.
@@ -672,15 +688,17 @@ UX / SEO BENCHMARK RESEARCH       COMPLETE
 PUBLIC UX EVOLUTION               COMPLETE
 LEAD CAPTURE (NEON)               COMPLETE
 SEO TECHNICAL FOUNDATIONS         COMPLETE
+ANALYTICS CONTRACT + CONSENT      COMPLETE
+GTM / GA4 PROPERTY ACTIVATION     PENDING
 CMS                               PENDING
 MEDIA                             PENDING
 PROXY / SALESFORCE                PENDING
 WHATSAPP                          PENDING
 SEARCH CONSOLE                    PENDING
-GA4 / GTM / ADS                   PENDING
+GOOGLE ADS                        PENDING
 PRODUCTION DEPLOYMENT             PENDING
 ```
 
-**Estado operativo:** `/` es el catálogo canónico preview con identidad PUBLIC-004/005; 32 programas reales en `draft`; leads persistidos en Neon; SEO técnico con canonical, metadata, robots, sitemap y JSON-LD mínimo. En production el sitemap hoy contiene solo `/` hasta publicar programas. CMS e integraciones externas no implementados.
+**Estado operativo:** `/` es el catálogo canónico preview con identidad PUBLIC-004/005; 32 programas en `draft`; leads en Neon; SEO técnico activo; analítica local con consentimiento básico y dataLayer, sin GTM institucional todavía. CMS e integraciones externas no implementados.
 
 **Limitaciones visuales conocidas:** sin fotografía ni imágenes de programa; los planes de estudio de grado siguen siendo texto plano (la tabla real de código/materia/créditos requiere trabajo de datos, no de UI); los bloques `Módulo I  Módulo VII` vienen con dos columnas colapsadas desde el PDF de origen; no hay compare-lite ni próximos inicios.

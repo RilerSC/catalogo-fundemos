@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
+import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
 import {
   PreviewBanner,
   SiteFooter,
@@ -66,11 +67,13 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${sans.variable} ${serif.variable}`}>
       <body className="flex min-h-dvh flex-col font-sans">
-        <PreviewBanner enabled={isCatalogPreview()} />
-        <SiteHeader />
-        <InterestNotice />
-        {children}
-        <SiteFooter />
+        <AnalyticsProvider>
+          <PreviewBanner enabled={isCatalogPreview()} />
+          <SiteHeader />
+          <InterestNotice />
+          {children}
+          <SiteFooter />
+        </AnalyticsProvider>
       </body>
     </html>
   );

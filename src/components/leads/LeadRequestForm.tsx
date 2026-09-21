@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { track } from "@/lib/analytics/track";
 import {
   parseLeadPayload,
   type LeadFieldErrors,
@@ -152,7 +153,12 @@ export function LeadRequestForm({
         | { ok?: boolean; fields?: LeadFieldErrors; error?: string }
         | null;
 
-      if (response.ok && data?.ok) {
+      if (response.status === 201 && data?.ok) {
+        track({
+          event: "generate_lead",
+          program_count: programIds.length,
+          lead_source: "interests",
+        });
         window.sessionStorage.setItem(
           SUCCESS_STORAGE_KEY,
           JSON.stringify({ programIds }),

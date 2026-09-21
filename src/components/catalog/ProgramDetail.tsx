@@ -146,6 +146,9 @@ export function ProgramDetail({
                   <InterestToggle
                     programId={program.id}
                     programName={program.name}
+                    programSlug={program.slug}
+                    academicTypeName={program.academicType.name}
+                    source="detail"
                     variant="default"
                     block
                   />
@@ -158,6 +161,9 @@ export function ProgramDetail({
             <InterestToggle
               programId={program.id}
               programName={program.name}
+              programSlug={program.slug}
+              academicTypeName={program.academicType.name}
+              source="detail"
               variant="default"
               block
             />
@@ -230,7 +236,11 @@ export function ProgramDetail({
           <ul className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {related.map((item) => (
               <li key={item.id} className="min-w-0">
-                <ProgramCard program={item} headingLevel={3} />
+                <ProgramCard
+                  program={item}
+                  headingLevel={3}
+                  itemListId="related"
+                />
               </li>
             ))}
           </ul>
@@ -241,6 +251,9 @@ export function ProgramDetail({
         <InterestToggle
           programId={program.id}
           programName={program.name}
+          programSlug={program.slug}
+          academicTypeName={program.academicType.name}
+          source="detail"
           variant="default"
           block
         />
